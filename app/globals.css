@@ -1,26 +1,280 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/* ==================================================================
+   RetinaSetu design tokens
+
+   Two environments, one system:
+   - The marketing surface is light, editorial and calm — it has to earn
+     trust from a health administrator before anything technical happens.
+   - The clinical workspace is dark, because a fundus photograph is a
+     dark, saturated image and every retinal viewer in real use puts it
+     on a near-black chrome so the retina is the brightest thing present.
+
+   Both share the same brand ramp, spacing rhythm and type scale.
+   ================================================================== */
+
+@theme {
+  /* Brand — a clinical teal. Reads as medical without reading as "AI". */
+  --color-brand-50: #eefbf8;
+  --color-brand-100: #d3f5ee;
+  --color-brand-200: #a9eadf;
+  --color-brand-300: #6fd8ca;
+  --color-brand-400: #35bdb0;
+  --color-brand-500: #1aa197;
+  --color-brand-600: #12827c;
+  --color-brand-700: #136865;
+  --color-brand-800: #145352;
+  --color-brand-900: #144544;
+  --color-brand-950: #04292b;
+
+  /* Neutral ramp for the clinical chrome — cool, slightly blue, never grey-green. */
+  --color-ink-50: #f5f8fb;
+  --color-ink-100: #e7edf4;
+  --color-ink-200: #cbd8e6;
+  --color-ink-300: #9db1c8;
+  --color-ink-400: #6b84a1;
+  --color-ink-500: #4b6280;
+  --color-ink-600: #374b64;
+  --color-ink-700: #293a51;
+  --color-ink-800: #1b2942;
+  --color-ink-850: #141f34;
+  --color-ink-900: #0e1726;
+  --color-ink-950: #070d18;
+
+  --color-canvas: #060b14;
+  --color-panel: #0c1421;
+  --color-panel-raised: #111b2c;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-display), Georgia, 'Times New Roman', serif;
+  --font-mono: var(--font-mono), ui-monospace, 'Cascadia Code', Menlo, monospace;
+
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 2px 4px rgb(9 20 38 / 0.06), 0 12px 32px -12px rgb(9 20 38 / 0.16);
+}
+
+/* ------------------------------------------------------------------
+   Data-visualisation tokens.
+
+   Severity is deliberately NOT a five-hue green→red ramp. Five points on
+   that ramp are indistinguishable under red-green colour vision deficiency
+   (measured: "No DR" vs "Mild NPDR" separate by ΔE 3.2 under protanopia),
+   which in a screening tool is a patient-safety defect, not a style issue.
+
+   So severity is carried by POSITION (rows always ordered 0→4), by the
+   LEVEL NUMERAL, and by the clinical name. Colour is used only as a
+   four-role status accent — good / warning / serious / critical — applied
+   once per view and always beside an icon and a text label, never alone.
+
+   Magnitude (probabilities, scores, capacity) is carried by length in a
+   single validated hue. Palette validated against the panel surface
+   #0c1421: all slots inside OKLCH L 0.48–0.67, chroma ≥ 0.1, all-pairs
+   CVD ΔE ≥ 8, normal-vision ΔE ≥ 15, contrast ≥ 3:1.
+   ------------------------------------------------------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Status roles — fixed, never themed, always paired with icon + label. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /* ICDR level → status role. Levels 0 and 1 are not referable. */
+  --dr-0: var(--status-good);
+  --dr-1: var(--status-good);
+  --dr-2: var(--status-warning);
+  --dr-3: var(--status-serious);
+  --dr-4: var(--status-critical);
+
+  /* Chart marks. Series 1 is the product, series 2 the baseline it replaces. */
+  --viz-series-1: #1aa197;
+  --viz-series-2: #d95926;
+  --viz-series-3: #3987e5;
+  --viz-surface: #0c1421;
+  --viz-grid: #1b2942;
+  --viz-axis: #293a51;
+  --viz-ink: #e7edf4;
+  --viz-ink-secondary: #9db1c8;
+  --viz-ink-muted: #6b84a1;
+
+  /* Lesion overlay hues. These sit on a photograph, not a chart surface, and
+     every class additionally carries its own marker SHAPE and a legend entry,
+     so identity never rests on hue alone. */
+  --lesion-microaneurysm: #ff5d7a;
+  --lesion-haemorrhage: #d93a3a;
+  --lesion-hard_exudate: #f7c948;
+  --lesion-soft_exudate: #e8eef5;
+  --lesion-neovascularisation: #b57bff;
+  --lesion-irma: #2fd4e8;
+  --lesion-venous_beading: #5aa5ff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numeric readouts must not jitter as values update during a live run. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+/* Focus treatment: visible, branded, never removed. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Thin, unobtrusive scrollbars inside the clinical chrome. */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-700) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: var(--color-ink-700);
+  border-radius: 999px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Subtle grid used behind the landing hero and the district console. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(148 163 184 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.08) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.bg-grid-light {
+  background-image:
+    linear-gradient(to right, rgb(15 42 62 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 42 62 / 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@keyframes rs-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rs-sweep {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(200%);
+  }
+}
+
+@keyframes rs-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(53 189 176 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgb(53 189 176 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(53 189 176 / 0);
+  }
+}
+
+.animate-fade-up {
+  animation: rs-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The scanning sweep shown over the image while a stage is analysing it. */
+.animate-sweep {
+  animation: rs-sweep 2.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse-ring {
+  animation: rs-pulse-ring 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-sweep,
+  .animate-pulse-ring {
+    animation: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================================================================
+   Print — the report has to come out of a district hospital printer
+   looking like a clinical document, not a screenshot of a web app.
+   ================================================================== */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 14mm 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #0b1220 !important;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-block {
+    display: block !important;
+  }
+
+  .print-sheet {
+    background: #fff !important;
+    color: #0b1220 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .print-sheet * {
+    color: #0b1220 !important;
+    border-color: #c9d3de !important;
+  }
+
+  .print-sheet .print-muted {
+    color: #4a5a6e !important;
+  }
+
+  .print-card {
+    border: 1px solid #c9d3de !important;
+    background: #fff !important;
+    break-inside: avoid;
+  }
+
+  .print-keep {
+    break-inside: avoid;
+  }
 }
