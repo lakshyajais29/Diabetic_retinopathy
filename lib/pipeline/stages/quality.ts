@@ -8,6 +8,7 @@ import {
   metricDeltas,
   recaptureGuidance,
   scoreQuality,
+  validateRetinalFundusImage,
   verdictFor,
 } from '../../vision/quality';
 import { enhanceFundus, normaliseForDisplay } from '../../vision/enhance';
@@ -44,7 +45,41 @@ export async function runQualityStage(
   let raster = await loadRaster(originalBuffer);
   let field = retinalMask(raster);
 
+  const retinalCheck = validateRetinalFundusImage(raster, field);
+  if (!retinalCheck.valid) {
+    const workingBuffer = await normaliseForDisplay(originalBuffer);
+    const metrics = scoreQuality(measureQuality(raster, field)).map((m) => ({
+      ...m,
+      score: 0,
+      status: 'fail' as const,
+      note: 'Not a retinal fundus photograph.',
+    }));
+
+    const assessment: QualityAssessment = {
+      overallScore: 0,
+      verdict: 'ungradeable',
+      gradable: false,
+      metrics,
+      failureReasons: [
+        `CRITICAL SAFETY HALT: Uploaded image is NOT a retinal fundus photograph (${retinalCheck.reason}).`,
+      ],
+      recaptureGuidance: [
+        'Upload a valid posterior-pole fundus photograph captured using a retinal camera.',
+        'Ensure the image displays retinal vessels, optic disc, and posterior pole.',
+      ],
+      enhancement: null,
+      imageWidth: raster.width,
+      imageHeight: raster.height,
+      narrative: `Non-retinal image detected: ${retinalCheck.reason}. The pipeline safely halted processing to avoid false clinical diagnostics.`,
+    };
+
+    onProgress('Non-retinal image detected — safety halt executed', 100);
+
+    return { assessment, workingBuffer, raster, field, degraded: false };
+  }
+
   onProgress('Measuring sharpness, illumination, contrast and framing', 28);
+
   let measurements = measureQuality(raster, field);
   let metrics = scoreQuality(measurements);
   let score = compositeScore(metrics);

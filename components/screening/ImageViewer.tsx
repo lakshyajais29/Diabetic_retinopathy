@@ -15,6 +15,7 @@ export interface ViewerLayers {
   anatomy: boolean;
   lesions: boolean;
   heatmap: boolean;
+  redFree?: boolean;
 }
 
 /**
@@ -118,8 +119,32 @@ export function ImageViewer({
         className,
       )}
     >
+      {/* SVG Filter for Ophthalmological Red-Free (Green Channel) view */}
+      <svg className="absolute h-0 w-0" aria-hidden>
+        <filter id="red-free-filter">
+          <feColorMatrix
+            type="matrix"
+            values="
+              0 1 0 0 0
+              0 1 0 0 0
+              0 1 0 0 0
+              0 0 0 1 0
+            "
+          />
+        </filter>
+      </svg>
+
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="block h-auto w-full" draggable={false} />
+      <img
+        src={src}
+        alt={alt}
+        className="block h-auto w-full transition-all duration-200"
+        style={{
+          filter: layers.redFree ? 'url(#red-free-filter) contrast(1.25) brightness(1.05)' : undefined,
+        }}
+        draggable={false}
+      />
+
 
       {layers.heatmap && explainability ? (
         <canvas

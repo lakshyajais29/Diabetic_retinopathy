@@ -284,3 +284,66 @@ export function metricDeltas(before: QualityMetric[], after: QualityMetric[]) {
 export function illuminationField(img: RasterImage, radius: number): Float32Array {
   return boxBlur(img.lum, img.width, img.height, radius);
 }
+
+/**
+ * Validates whether an uploaded image matches basic spectral and anatomical
+ * properties of a posterior-pole fundus photograph. Protects the pipeline
+ * against non-retinal uploads (e.g. selfies, landscapes, objects).
+ */
+export function validateRetinalFundusImage(
+  img: RasterImage,
+  field: RetinalMask,
+): { valid: boolean; reason?: string } {
+  const { data, width, height } = img;
+  const { mask, count } = field;
+  const n = width * height;
+
+  if (count === 0 || count < n * 0.05) {
+    return { valid: false, reason: 'Image is completely dark or empty.' };
+  }
+
+  let totalR = 0;
+  let totalG = 0;
+  let totalB = 0;
+  let sampleCount = 0;
+
+  for (let i = 0; i < n; i += 2) {
+    if (!mask[i]) continue;
+    const r = data[i * 3];
+    const g = data[i * 3 + 1];
+    const b = data[i * 3 + 2];
+    totalR += r;
+    totalG += g;
+    totalB += b;
+    sampleCount++;
+  }
+
+  if (sampleCount === 0) {
+    return { valid: false, reason: 'No retinal field detected.' };
+  }
+
+  const avgR = totalR / sampleCount;
+  const avgG = totalG / sampleCount;
+  const avgB = totalB / sampleCount;
+
+  const redToBlueRatio = avgR / (avgB + 1);
+
+  if (avgR < 20 && avgG < 20 && avgB < 20) {
+    return { valid: false, reason: 'Image is severely underexposed or pitch black.' };
+  }
+
+  if (avgB > avgR) {
+    return { valid: false, reason: 'Photo has blue spectral dominance, not matching retinal tissue.' };
+  }
+
+  if (redToBlueRatio < 1.35) {
+    return { valid: false, reason: 'Photo lacks characteristic red-channel dominance of fundus photography.' };
+  }
+
+  if (avgG > avgR * 1.4) {
+    return { valid: false, reason: 'Photo has green dominance, uncharacteristic of fundus photography.' };
+  }
+
+  return { valid: true };
+}
+

@@ -30,11 +30,15 @@ import {
 } from '@/components/screening/cards/DecisionCards';
 import { ReportView } from '@/components/screening/ReportView';
 import { Panel, StatusBadge } from '@/components/ui/primitives';
+import { saveScreeningRecord } from '@/lib/client/screeningStore';
+import { speakQualityResult, speakClinicalVerdict } from '@/lib/client/voiceAssistant';
 import { cn } from '@/lib/ui';
+import { Volume2, VolumeX } from 'lucide-react';
 
 export function ScreeningWorkspace() {
   const { state, start, reset } = useScreeningRun();
   const [view, setView] = useState<'pipeline' | 'report'>('pipeline');
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [layers, setLayers] = useState<ViewerLayers>({
     anatomy: true,
     lesions: true,
@@ -70,11 +74,56 @@ export function ScreeningWorkspace() {
     [reset],
   );
 
+  /* Audio Voice Assistant alerts for ASHA workers */
+  useEffect(() => {
+    if (!voiceEnabled) return;
+    if (state.quality) {
+      speakQualityResult(state.quality.verdict, state.quality.overallScore);
+    }
+  }, [state.quality, voiceEnabled]);
+
+  useEffect(() => {
+    if (!voiceEnabled) return;
+    if (state.report && state.grading) {
+      speakClinicalVerdict(state.grading.label, state.report.grade.referable);
+    }
+  }, [state.report, state.grading, voiceEnabled]);
+
+  /* Sync completed screening run into Doctor Console storage */
+  useEffect(() => {
+    if (state.report && state.quality) {
+      saveScreeningRecord({
+        id: state.report.reportId || `rec-${Date.now()}`,
+        patientId: patient?.patientId || `PAT-${Math.floor(1000 + Math.random() * 9000)}`,
+        patientName: 'Walk-in Patient',
+        patientAge: patient?.age ? parseInt(patient.age, 10) || 52 : 52,
+        gender: patient?.sex === 'female' ? 'F' : 'M',
+        timestamp: new Date().toISOString(),
+        qualityVerdict: state.quality.verdict,
+        qualityScore: state.quality.overallScore,
+        icdrGrade: state.grading?.level ?? 0,
+        gradeLabel: state.grading?.label ?? 'Ungradeable',
+        referralRequired: state.report.grade.referable,
+        referralUrgency:
+          state.report.grade.urgency === 'urgent'
+            ? 'Immediate'
+            : state.report.grade.urgency === 'prompt'
+            ? 'Within 14 Days'
+            : 'Routine (6-12 Months)',
+        confidenceScore: state.confidence?.finalConfidence ?? 80,
+        status: 'Pending Doctor Review',
+        lesionSummary: state.report.recommendation.headline || 'Screening pipeline run completed.',
+      });
+    }
+  }, [state.report, state.quality, state.grading, state.confidence, patient]);
+
   /* Turn the heatmap on automatically the moment the explainability stage
      lands — that is the stage where the operator is meant to look at it. */
   useEffect(() => {
     if (state.explainability) setLayers((l) => ({ ...l, heatmap: true }));
   }, [state.explainability]);
+
+
 
   /* Follow the run as new stage cards arrive. */
   const completedCount = useMemo(
@@ -85,6 +134,7 @@ export function ScreeningWorkspace() {
     if (state.phase !== 'running' || completedCount === 0) return;
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [completedCount, state.phase]);
+
 
   const toggleClass = useCallback((c: LesionClass) => {
     setVisibleClasses((prev) => {
@@ -166,12 +216,28 @@ export function ScreeningWorkspace() {
               </div>
               <button
                 type="button"
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition',
+                  voiceEnabled
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-200 bg-white text-slate-400',
+                )}
+                title="Toggle Screener Voice Assistant"
+              >
+                {voiceEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                Voice {voiceEnabled ? 'On' : 'Off'}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => handleReset()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-950 px-3 py-2 text-[12px] font-semibold text-ink-300 transition hover:border-ink-600 hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                 New screening
               </button>
+
             </div>
           </div>
 
@@ -244,6 +310,13 @@ export function ScreeningWorkspace() {
                   >
                     Attention
                   </LayerToggle>
+                  <LayerToggle
+                    active={!!layers.redFree}
+                    onClick={() => setLayers((l) => ({ ...l, redFree: !l.redFree }))}
+                    icon={<Eye className="h-3.5 w-3.5 text-emerald-400" aria-hidden />}
+                  >
+                    Red-Free Filter
+                  </LayerToggle>
                   {state.images.enhanced ? (
                     <LayerToggle
                       active={showEnhanced}
@@ -253,6 +326,7 @@ export function ScreeningWorkspace() {
                       Enhanced
                     </LayerToggle>
                   ) : null}
+
                 </div>
 
                 {layers.heatmap && state.explainability ? (
