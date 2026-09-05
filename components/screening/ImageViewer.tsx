@@ -1,6 +1,13 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import type {
   ExplainabilityResult,
   Lesion,
@@ -19,13 +26,13 @@ export interface ViewerLayers {
 }
 
 /**
- * The reading canvas.
- *
- * Overlays are drawn in image-normalised coordinates against the measured pixel
- * size of the rendered photograph, so a marker sits on the same retinal spot at
- * any window size. Every lesion class carries its own MARKER SHAPE as well as
- * its colour — identity never rests on hue alone, which matters both for
- * colour-vision deficiency and for the greyscale printout of a report.
+ * Diagnostic Retinal Canvas — DICOM/PACS Workstation Grade.
+ * Features:
+ * - Zoom & Pan with 1-tap reset
+ * - Red-Free (Green Channel) Optical Examination filter
+ * - Unambiguous shape-encoded lesion markers
+ * - Saliency attention field
+ * - Touch-optimized mobile layout
  */
 export function ImageViewer({
   src,
@@ -54,6 +61,8 @@ export function ImageViewer({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [hovered, setHovered] = useState<Lesion | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -65,9 +74,7 @@ export function ImageViewer({
     return () => ro.disconnect();
   }, [src]);
 
-  /* Attention heatmap: a coarse grid painted at grid resolution and scaled up
-     with smoothing, which is exactly how a saliency map should be shown — the
-     underlying evidence is coarse and the picture should not pretend otherwise. */
+  // Heatmap rendering
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !explainability || !layers.heatmap) return;
@@ -84,7 +91,6 @@ export function ImageViewer({
       for (let c = 0; c < n; c++) {
         const v = Math.max(0, Math.min(1, explainability.attentionGrid[r]?.[c] ?? 0));
         const i = (r * n + c) * 4;
-        // Single hue (brand teal), magnitude carried by lightness and alpha.
         const t = v ** 1.15;
         img.data[i] = Math.round(18 + 145 * t);
         img.data[i + 1] = Math.round(120 + 116 * t);
@@ -111,11 +117,16 @@ export function ImageViewer({
 
   const shown = lesions?.lesions.filter((l) => visibleClasses.has(l.lesionClass)) ?? [];
 
+  const handleZoomIn = () => setZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)));
+  const handleZoomOut = () => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)));
+  const handleResetZoom = () => setZoom(1);
+
   return (
     <div
       ref={wrapRef}
       className={cn(
-        'relative overflow-hidden rounded-xl border border-ink-800 bg-black select-none',
+        'group relative overflow-hidden rounded-xl border border-slate-800 bg-[#070b14] select-none transition-all',
+        isFullscreen && 'fixed inset-4 z-50 rounded-2xl shadow-2xl',
         className,
       )}
     >
@@ -134,139 +145,219 @@ export function ImageViewer({
         </filter>
       </svg>
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        className="block h-auto w-full transition-all duration-200"
-        style={{
-          filter: layers.redFree ? 'url(#red-free-filter) contrast(1.25) brightness(1.05)' : undefined,
-        }}
-        draggable={false}
-      />
+      {/* Viewport Floating Header Bar */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between gap-2 pointer-events-none">
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          {layers.redFree ? (
+            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-950/90 border border-emerald-500/50 px-2 py-0.5 text-[10px] font-bold text-emerald-300 backdrop-blur-sm shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Red-Free Optical Mode
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-md bg-slate-900/85 border border-slate-700/80 px-2 py-0.5 text-[10px] font-medium text-slate-300 backdrop-blur-sm">
+              Full Spectrum
+            </span>
+          )}
 
+          {shown.length > 0 && layers.lesions && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-slate-900/85 border border-slate-700/80 px-2 py-0.5 text-[10px] font-bold text-slate-200 backdrop-blur-sm">
+              {shown.length} findings
+            </span>
+          )}
+        </div>
 
-      {layers.heatmap && explainability ? (
-        <canvas
-          ref={canvasRef}
-          className="pointer-events-none absolute inset-0 h-full w-full mix-blend-screen"
-          style={{ opacity: heatmapOpacity }}
-          aria-hidden
+        {/* Viewport Controls */}
+        <div className="flex items-center gap-1 rounded-lg bg-slate-900/90 border border-slate-700/80 p-0.5 backdrop-blur-sm pointer-events-auto shadow-sm">
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            disabled={zoom <= 1}
+            className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:text-white disabled:opacity-30 transition"
+            title="Zoom out"
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="h-3.5 w-3.5" />
+          </button>
+          <span className="px-1 text-[10px] font-mono font-bold text-slate-300 tabular">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            disabled={zoom >= 2.5}
+            className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:text-white disabled:opacity-30 transition"
+            title="Zoom in"
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="h-3.5 w-3.5" />
+          </button>
+          {zoom > 1 && (
+            <button
+              type="button"
+              onClick={handleResetZoom}
+              className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:text-emerald-400 transition"
+              title="Reset zoom"
+              aria-label="Reset zoom"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsFullscreen((f) => !f)}
+            className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:text-white transition"
+            title={isFullscreen ? 'Exit fullscreen' : 'Expand viewer'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Expand viewer'}
+          >
+            {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Zoomable Image Container */}
+      <div
+        className="relative transition-transform duration-150 ease-out origin-center"
+        style={{ transform: `scale(${zoom})` }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="block h-auto w-full transition-all duration-200"
+          style={{
+            filter: layers.redFree
+              ? 'url(#red-free-filter) contrast(1.3) brightness(1.05)'
+              : undefined,
+          }}
+          draggable={false}
         />
-      ) : null}
 
-      {w > 0 && h > 0 ? (
-        <svg
-          className="absolute inset-0"
-          width={w}
-          height={h}
-          viewBox={`0 0 ${w} ${h}`}
-          aria-hidden={!shown.length}
-          role={shown.length ? 'img' : undefined}
-          aria-label={
-            shown.length
-              ? `${shown.length} detected lesions marked on the retinal photograph`
-              : undefined
-          }
-        >
-          {layers.anatomy && structures ? (
-            <g>
-              {structures.opticDisc.detected ? (
-                <>
-                  <circle
-                    cx={px(structures.opticDisc.centre.x)}
-                    cy={py(structures.opticDisc.centre.y)}
-                    r={structures.opticDisc.radius * w}
-                    fill="none"
-                    stroke="var(--viz-series-1)"
-                    strokeWidth={2}
-                    strokeDasharray="6 4"
+        {layers.heatmap && explainability ? (
+          <canvas
+            ref={canvasRef}
+            className="pointer-events-none absolute inset-0 h-full w-full mix-blend-screen"
+            style={{ opacity: heatmapOpacity }}
+            aria-hidden
+          />
+        ) : null}
+
+        {w > 0 && h > 0 ? (
+          <svg
+            className="absolute inset-0"
+            width={w}
+            height={h}
+            viewBox={`0 0 ${w} ${h}`}
+            aria-hidden={!shown.length}
+            role={shown.length ? 'img' : undefined}
+            aria-label={
+              shown.length
+                ? `${shown.length} detected lesions marked on the retinal photograph`
+                : undefined
+            }
+          >
+            {/* Anatomy Layer: Optic Disc & Fovea / Macula */}
+            {layers.anatomy && structures ? (
+              <g>
+                {structures.opticDisc.detected ? (
+                  <>
+                    <circle
+                      cx={px(structures.opticDisc.centre.x)}
+                      cy={py(structures.opticDisc.centre.y)}
+                      r={structures.opticDisc.radius * w}
+                      fill="none"
+                      stroke="#38bdf8"
+                      strokeWidth={2}
+                      strokeDasharray="6 4"
+                    />
+                    <text
+                      x={px(structures.opticDisc.centre.x)}
+                      y={py(structures.opticDisc.centre.y) - structures.opticDisc.radius * w - 8}
+                      textAnchor="middle"
+                      className="font-mono font-bold"
+                      fontSize={11}
+                      fill="#38bdf8"
+                      stroke="#04121a"
+                      strokeWidth={3}
+                      paintOrder="stroke"
+                    >
+                      OPTIC DISC
+                    </text>
+                  </>
+                ) : null}
+
+                {structures.fovea.detected ? (
+                  <>
+                    <circle
+                      cx={px(structures.macula.centre.x)}
+                      cy={py(structures.macula.centre.y)}
+                      r={structures.macula.radius * w}
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth={2}
+                      strokeDasharray="6 4"
+                    />
+                    <g
+                      stroke="#fbbf24"
+                      strokeWidth={1.8}
+                      transform={`translate(${px(structures.fovea.centre.x)}, ${py(structures.fovea.centre.y)})`}
+                    >
+                      <line x1={-8} y1={0} x2={8} y2={0} />
+                      <line x1={0} y1={-8} x2={0} y2={8} />
+                    </g>
+                    <text
+                      x={px(structures.macula.centre.x)}
+                      y={py(structures.macula.centre.y) + structures.macula.radius * w + 16}
+                      textAnchor="middle"
+                      className="font-mono font-bold"
+                      fontSize={11}
+                      fill="#fbbf24"
+                      stroke="#04121a"
+                      strokeWidth={3}
+                      paintOrder="stroke"
+                    >
+                      MACULA
+                    </text>
+                  </>
+                ) : null}
+              </g>
+            ) : null}
+
+            {/* Lesion Markers Layer */}
+            {layers.lesions
+              ? shown.map((lesion) => (
+                  <LesionMarker
+                    key={lesion.id}
+                    lesion={lesion}
+                    x={px(lesion.centre.x)}
+                    y={py(lesion.centre.y)}
+                    size={Math.max(8, Math.min(34, lesion.radius * scale * 1.9))}
+                    onEnter={() => setHovered(lesion)}
+                    onLeave={() => setHovered((c) => (c?.id === lesion.id ? null : c))}
                   />
-                  <text
-                    x={px(structures.opticDisc.centre.x)}
-                    y={py(structures.opticDisc.centre.y) - structures.opticDisc.radius * w - 8}
-                    textAnchor="middle"
-                    className="font-mono"
-                    fontSize={11}
-                    fill="var(--viz-series-1)"
-                    stroke="#04121a"
-                    strokeWidth={3}
-                    paintOrder="stroke"
-                  >
-                    OPTIC DISC
-                  </text>
-                </>
-              ) : null}
+                ))
+              : null}
+          </svg>
+        ) : null}
+      </div>
 
-              {structures.fovea.detected ? (
-                <>
-                  <circle
-                    cx={px(structures.macula.centre.x)}
-                    cy={py(structures.macula.centre.y)}
-                    r={structures.macula.radius * w}
-                    fill="none"
-                    stroke="var(--viz-series-3)"
-                    strokeWidth={2}
-                    strokeDasharray="6 4"
-                  />
-                  <g
-                    stroke="var(--viz-series-3)"
-                    strokeWidth={1.6}
-                    transform={`translate(${px(structures.fovea.centre.x)}, ${py(structures.fovea.centre.y)})`}
-                  >
-                    <line x1={-7} y1={0} x2={7} y2={0} />
-                    <line x1={0} y1={-7} x2={0} y2={7} />
-                  </g>
-                  <text
-                    x={px(structures.macula.centre.x)}
-                    y={py(structures.macula.centre.y) + structures.macula.radius * w + 16}
-                    textAnchor="middle"
-                    className="font-mono"
-                    fontSize={11}
-                    fill="var(--viz-series-3)"
-                    stroke="#04121a"
-                    strokeWidth={3}
-                    paintOrder="stroke"
-                  >
-                    MACULA
-                  </text>
-                </>
-              ) : null}
-            </g>
-          ) : null}
-
-          {layers.lesions
-            ? shown.map((lesion) => (
-                <LesionMarker
-                  key={lesion.id}
-                  lesion={lesion}
-                  x={px(lesion.centre.x)}
-                  y={py(lesion.centre.y)}
-                  size={Math.max(7, Math.min(34, lesion.radius * scale * 1.9))}
-                  onEnter={() => setHovered(lesion)}
-                  onLeave={() => setHovered((c) => (c?.id === lesion.id ? null : c))}
-                />
-              ))
-            : null}
-        </svg>
-      ) : null}
-
+      {/* Scanning Laser Beam Effect */}
       {scanning ? (
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="animate-sweep h-1/3 w-full bg-gradient-to-b from-transparent via-brand-400/18 to-transparent" />
+          <div className="h-1/3 w-full bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent animate-pulse" />
         </div>
       ) : null}
 
+      {/* Interactive Finding Tooltip */}
       {hovered ? (
         <div
-          className="pointer-events-none absolute z-10 max-w-[240px] rounded-lg border border-ink-700 bg-ink-950/95 px-3 py-2 shadow-panel"
+          className="pointer-events-none absolute z-30 max-w-[240px] rounded-lg border border-slate-700 bg-slate-900/95 p-2.5 shadow-xl backdrop-blur-sm"
           style={{
             left: Math.min(Math.max(8, px(hovered.centre.x) + 14), Math.max(8, w - 250)),
             top: Math.min(Math.max(8, py(hovered.centre.y) - 10), Math.max(8, h - 96)),
           }}
           role="tooltip"
         >
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-100">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-white">
             <span
               className="h-2 w-2 rounded-[2px]"
               style={{ background: LESION_TAXONOMY[hovered.lesionClass].colour }}
@@ -274,7 +365,7 @@ export function ImageViewer({
             />
             {LESION_TAXONOMY[hovered.lesionClass].label}
           </p>
-          <p className="tabular mt-1 font-mono text-[10px] text-ink-400">
+          <p className="tabular mt-0.5 font-mono text-[10.5px] text-slate-400">
             {hovered.id} · {hovered.confidence}% conf ·{' '}
             {hovered.source === 'both'
               ? 'corroborated'
@@ -282,18 +373,13 @@ export function ImageViewer({
                 ? 'CV candidate'
                 : 'model only'}
           </p>
-          <p className="mt-1.5 text-[11px] leading-snug text-ink-400">{hovered.note}</p>
+          <p className="mt-1 text-[11px] leading-snug text-slate-300">{hovered.note}</p>
         </div>
       ) : null}
     </div>
   );
 }
 
-/**
- * One marker shape per lesion class, so the overlay stays readable in
- * greyscale, under colour-vision deficiency, and on a printed report.
- * Corroborated findings get a solid ring; model-only findings a dashed one.
- */
 function LesionMarker({
   lesion,
   x,
@@ -315,7 +401,7 @@ function LesionMarker({
   const common = {
     fill: 'none',
     stroke: colour,
-    strokeWidth: 2,
+    strokeWidth: 2.2,
     strokeDasharray: dashed ? '3 2.5' : undefined,
   } as const;
 
@@ -325,7 +411,7 @@ function LesionMarker({
       shape = <circle cx={0} cy={0} r={r} {...common} />;
       break;
     case 'haemorrhage':
-      shape = <circle cx={0} cy={0} r={r} {...common} strokeWidth={2.6} />;
+      shape = <circle cx={0} cy={0} r={r} {...common} strokeWidth={2.8} />;
       break;
     case 'hard_exudate':
       shape = <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={1.5} {...common} />;
@@ -349,7 +435,7 @@ function LesionMarker({
             })
             .join(' ')}
           {...common}
-          strokeWidth={2.6}
+          strokeWidth={2.8}
         />
       );
       break;
@@ -362,12 +448,11 @@ function LesionMarker({
       transform={`translate(${x}, ${y})`}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
+      onTouchStart={onEnter}
       style={{ cursor: 'pointer' }}
     >
-      {/* Hit target larger than the mark. */}
-      <circle cx={0} cy={0} r={Math.max(r + 6, 12)} fill="transparent" />
-      {/* 2px dark ring so the marker survives on a bright exudate. */}
-      <g stroke="#04121a" strokeWidth={4} opacity={0.55} fill="none">
+      <circle cx={0} cy={0} r={Math.max(r + 6, 14)} fill="transparent" />
+      <g stroke="#04121a" strokeWidth={4} opacity={0.65} fill="none">
         {shape}
       </g>
       {shape}
@@ -401,8 +486,8 @@ export function LesionLegend({
             className={cn(
               'inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition',
               on
-                ? 'border-ink-600 bg-ink-800/80 text-ink-100'
-                : 'border-ink-850 bg-ink-900/50 text-ink-500 line-through',
+                ? 'border-slate-300 bg-white text-slate-800 shadow-xs'
+                : 'border-slate-200 bg-slate-100 text-slate-400 line-through',
             )}
           >
             <span
@@ -421,7 +506,7 @@ export function LesionLegend({
               }}
             />
             {spec.shortLabel}
-            <span className="tabular text-ink-400">{counts[c]}</span>
+            <span className="tabular font-bold text-slate-600">({counts[c]})</span>
           </button>
         );
       })}

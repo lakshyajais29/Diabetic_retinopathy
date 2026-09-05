@@ -30,7 +30,7 @@ export function GradingCard({ data }: { data: GradingResult }) {
       <PanelHeader
         icon={<Activity className="h-4 w-4" aria-hidden />}
         title="Stage 4 · DR severity grading"
-        subtitle="ICDR Level 0–4, with the full probability breakdown rather than only the winner."
+        subtitle="ICDR Level 0–4 standard, with complete probability distribution across all five grades."
         right={
           <StatusBadge status={data.referable ? status : 'good'} size="md">
             {data.referable ? 'Referable DR' : 'Not referable'}
@@ -38,40 +38,38 @@ export function GradingCard({ data }: { data: GradingResult }) {
         }
       />
 
-      <div className="space-y-6 p-5">
-        {/* Headline grade. Status colour appears once, always beside the numeral
-            and the clinical name — never carrying the meaning by itself. */}
-        <div className="flex flex-wrap items-center gap-5 rounded-lg border border-ink-800 bg-ink-900/50 px-5 py-4">
+      <div className="space-y-5 p-4 sm:p-5">
+        {/* Headline grade box */}
+        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
           <div
-            className="grid h-16 w-16 shrink-0 place-items-center rounded-xl text-3xl font-bold text-ink-950"
+            className="grid h-16 w-16 shrink-0 place-items-center rounded-xl text-3xl font-extrabold text-white shadow-sm"
             style={{ background: `var(--dr-${data.level})` }}
             aria-hidden
           >
             {data.level}
           </div>
-          <div className="min-w-[220px] flex-1">
-            <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
-              ICDR Level {data.level}
+          <div className="min-w-[200px] flex-1">
+            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+              ICDR Classification
             </p>
-            <p className="mt-1 text-xl font-semibold text-ink-50">{spec.clinical}</p>
-            <p className="mt-1.5 text-[12px] leading-relaxed text-ink-400">{spec.meaning}</p>
+            <p className="mt-0.5 text-xl font-bold text-slate-900">{spec.clinical}</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">{spec.meaning}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
-              Follow-up
+          <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-5">
+            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+              Clinical Action
             </p>
-            <p className="mt-1 text-[13px] font-semibold text-ink-100">{spec.followUp}</p>
-            <p className="mt-1 font-mono text-[10.5px] tracking-wide text-ink-500 uppercase">
+            <p className="mt-0.5 text-xs font-bold text-slate-900">{spec.followUp}</p>
+            <p className="mt-0.5 font-mono text-[10px] font-semibold text-emerald-800 uppercase">
               Urgency: {data.urgency}
             </p>
           </div>
         </div>
 
-        {/* Probability breakdown. Magnitude = bar length in ONE hue; severity is
-            carried by row order, the level numeral and the clinical name. */}
+        {/* Probability breakdown */}
         <div>
           <SectionLabel>Probability across all five levels</SectionLabel>
-          <div className="mt-3 space-y-2">
+          <div className="mt-2.5 space-y-2">
             {DR_LEVELS.map((level) => {
               const p = data.distribution[level] ?? 0;
               const isTop = level === data.level;
@@ -79,8 +77,8 @@ export function GradingCard({ data }: { data: GradingResult }) {
                 <div
                   key={level}
                   className={cn(
-                    'grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md px-2 py-1.5 transition',
-                    isTop && 'bg-brand-600/10 ring-1 ring-brand-600/30 ring-inset',
+                    'grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg px-2.5 py-1.5 transition',
+                    isTop ? 'bg-emerald-50 border border-emerald-200' : 'hover:bg-slate-50',
                   )}
                 >
                   <div className="flex items-center gap-2">
@@ -89,33 +87,33 @@ export function GradingCard({ data }: { data: GradingResult }) {
                       className="h-2 w-2 rounded-full"
                       style={{ background: `var(--dr-${level})` }}
                     />
-                    <span className="tabular font-mono text-[11px] font-semibold text-ink-400">
+                    <span className="tabular font-mono text-[11px] font-bold text-slate-500">
                       L{level}
                     </span>
                     <span
                       className={cn(
-                        'w-[124px] text-[12px]',
-                        isTop ? 'font-semibold text-ink-100' : 'text-ink-400',
+                        'w-[110px] sm:w-[130px] text-xs',
+                        isTop ? 'font-bold text-slate-900' : 'text-slate-600',
                       )}
                     >
                       {DR_SCALE[level].short}
                     </span>
                   </div>
 
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-ink-800">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                     <div
-                      className="h-full rounded-full transition-[width] duration-700 ease-out"
+                      className="h-full rounded-full transition-[width] duration-500 ease-out"
                       style={{
                         width: `${Math.max(0, Math.min(100, p * 100))}%`,
-                        background: isTop ? 'var(--viz-series-1)' : 'var(--color-ink-600)',
+                        background: isTop ? '#059669' : '#94a3b8',
                       }}
                     />
                   </div>
 
                   <span
                     className={cn(
-                      'tabular w-[52px] text-right font-mono text-[12px]',
-                      isTop ? 'font-semibold text-ink-50' : 'text-ink-400',
+                      'tabular w-[50px] text-right font-mono text-xs',
+                      isTop ? 'font-bold text-emerald-800' : 'text-slate-500',
                     )}
                   >
                     {(p * 100).toFixed(1)}%
@@ -126,42 +124,42 @@ export function GradingCard({ data }: { data: GradingResult }) {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-3">
           <StatTile
             label="Decision margin"
             value={(data.margin * 100).toFixed(1)}
             unit="pts"
-            hint="Top level minus runner-up"
+            hint="Top level vs. runner-up"
             status={data.margin > 0.35 ? 'good' : data.margin > 0.15 ? 'warning' : 'critical'}
           />
           <StatTile
             label="Distribution entropy"
             value={data.entropy.toFixed(2)}
-            hint="0 = certain · 1 = no information"
+            hint="0 = certain · 1 = uniform"
             status={data.entropy < 0.55 ? 'good' : data.entropy < 0.8 ? 'warning' : 'critical'}
           />
           <StatTile
             label="Grader agreement"
-            value={data.agreement.agrees ? 'Agree' : `${data.agreement.delta} levels apart`}
+            value={data.agreement.agrees ? 'Agree' : `${data.agreement.delta} lvl delta`}
             status={data.agreement.agrees ? 'good' : 'critical'}
             hint="Rule engine vs. vision model"
           />
         </div>
 
-        {/* Two independent opinions, shown side by side rather than merged away. */}
-        <div className="grid gap-3 md:grid-cols-2">
+        {/* Two independent opinions */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <GraderPanel
-            title="Transparent rule engine"
-            subtitle="ICDR criteria applied literally to the lesion counts"
+            title="Rule-Based Decision Engine"
+            subtitle="Deterministic clinical criteria from lesion counts"
             level={data.ruleBased.level}
             body={
               <>
-                <p className="font-mono text-[11px] text-brand-300">
+                <p className="font-mono text-[11px] font-bold text-emerald-700">
                   {data.ruleBased.triggeredRule}
                 </p>
-                <ul className="mt-2 space-y-1.5">
+                <ul className="mt-1.5 space-y-1">
                   {data.ruleBased.rationale.map((r) => (
-                    <li key={r} className="text-[11.5px] leading-relaxed text-ink-400">
+                    <li key={r} className="text-xs leading-relaxed text-slate-600">
                       · {r}
                     </li>
                   ))}
@@ -170,11 +168,11 @@ export function GradingCard({ data }: { data: GradingResult }) {
             }
           />
           <GraderPanel
-            title="Vision model"
+            title="Vision Model Verification"
             subtitle={`Independent read · ${data.modelBased.confidence}% self-reported confidence`}
             level={data.modelBased.level}
             body={
-              <p className="text-[11.5px] leading-relaxed text-ink-400">
+              <p className="text-xs leading-relaxed text-slate-600">
                 {data.modelBased.rationale}
               </p>
             }
@@ -183,10 +181,10 @@ export function GradingCard({ data }: { data: GradingResult }) {
 
         <div
           className={cn(
-            'rounded-lg border px-4 py-3 text-[12px] leading-relaxed',
+            'rounded-lg border px-3.5 py-2.5 text-xs leading-relaxed',
             data.agreement.agrees
-              ? 'border-ink-800 bg-ink-900/40 text-ink-400'
-              : 'border-[#d03b3b]/40 bg-[#d03b3b]/10 text-[#ffb3b3]',
+              ? 'border-slate-200 bg-slate-50 text-slate-600'
+              : 'border-rose-300 bg-rose-50 text-rose-800',
           )}
         >
           {data.agreement.note}
@@ -208,20 +206,20 @@ function GraderPanel({
   body: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[12px] font-semibold text-ink-100">{title}</p>
-          <p className="mt-0.5 text-[11px] text-ink-500">{subtitle}</p>
+          <p className="text-xs font-bold text-slate-900">{title}</p>
+          <p className="mt-0.5 text-[11px] text-slate-500">{subtitle}</p>
         </div>
         <span
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg font-mono text-sm font-bold text-ink-950"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg font-mono text-xs font-extrabold text-white shadow-xs"
           style={{ background: `var(--dr-${level})` }}
         >
           {level}
         </span>
       </div>
-      <div className="mt-3">{body}</div>
+      <div className="mt-2.5">{body}</div>
     </div>
   );
 }
@@ -243,8 +241,8 @@ export function ExplainCard({ data }: { data: ExplainabilityResult }) {
     <Panel className="animate-fade-up">
       <PanelHeader
         icon={<Target className="h-4 w-4" aria-hidden />}
-        title="Stage 5 · Explainability"
-        subtitle="Where the grading signal came from, and whether it lands on real evidence."
+        title="Stage 5 · Explainability & visual evidence"
+        subtitle="Where the grading signal originated and whether it matches anatomical evidence."
         right={
           <StatusBadge status={status} size="md">
             {data.overlapAssessed ? `Evidence ${data.overlapInterpretation}` : 'Not independently assessed'}
@@ -252,21 +250,21 @@ export function ExplainCard({ data }: { data: ExplainabilityResult }) {
         }
       />
 
-      <div className="space-y-5 p-5">
-        <p className="text-[12.5px] leading-relaxed text-ink-300">{data.narrative}</p>
+      <div className="space-y-4 p-4 sm:p-5">
+        <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600">{data.narrative}</p>
 
-        <div className="flex items-center gap-2 rounded-lg border border-ink-800 bg-ink-900/40 px-3.5 py-2.5">
-          <span className="text-[10.5px] font-semibold tracking-[0.1em] text-ink-500 uppercase">
-            Attention source
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2">
+          <span className="text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
+            Attention Source:
           </span>
-          <span className="font-mono text-[11.5px] text-brand-300">
+          <span className="font-mono text-xs font-medium text-emerald-800">
             {data.attentionSource === 'model'
-              ? 'grading model — the regions it reported as driving the grade'
-              : 'on-device lesion-response energy (vasculature suppressed)'}
+              ? 'Grading model saliency map (reported driver regions)'
+              : 'On-device lesion-response energy (suppressed vasculature)'}
           </span>
         </div>
 
-        <div className="rounded-lg border border-ink-800 bg-ink-900/50 px-4 py-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
           <Meter
             label="Evidence overlap score"
             value={data.evidenceOverlapScore}
@@ -276,54 +274,52 @@ export function ExplainCard({ data }: { data: ExplainabilityResult }) {
         </div>
 
         <div>
-          <SectionLabel>Where the attention mass actually landed</SectionLabel>
-          <div className="mt-3 space-y-3">
+          <SectionLabel>Where the attention mass landed</SectionLabel>
+          <div className="mt-2.5 space-y-2.5">
             <Meter
               label="On detected lesions"
               value={data.attentionOnLesionsPct}
               suffix="%"
-              colour="var(--viz-series-1)"
+              colour="#059669"
               compact
             />
             <Meter
               label="On normal anatomy (disc, macula)"
               value={data.attentionOnAnatomyPct}
               suffix="%"
-              colour="var(--viz-series-3)"
+              colour="#3b82f6"
               compact
             />
             <Meter
-              label="Unaccounted for"
+              label="Background / unexplained"
               value={data.attentionUnexplainedPct}
               suffix="%"
-              colour="var(--color-ink-500)"
+              colour="#94a3b8"
               compact
             />
           </div>
-          <p className="mt-2.5 text-[11px] leading-relaxed text-ink-500">
-            Strict cell-level decomposition. Attention is coarse and lesions are small, so a
-            low “on lesions” share is normal — the overlap score above measures proximity
-            rather than pixel coincidence, which is the fairer question.
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+            Cell-level decomposition. Attention is coarse and lesions are punctate; the overlap score measures proximity rather than single-pixel coincidence.
           </p>
         </div>
 
         {data.topRegions.length > 0 ? (
           <div>
             <SectionLabel>Highest-weighted regions</SectionLabel>
-            <div className="mt-2.5 space-y-1.5">
+            <div className="mt-2 space-y-1.5">
               {data.topRegions.map((r) => (
                 <div
                   key={`${r.row}-${r.col}`}
-                  className="flex items-center justify-between gap-3 rounded-md border border-ink-850 bg-ink-900/40 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5"
                 >
                   <div className="min-w-0">
-                    <p className="text-[11.5px] text-ink-200">{quadrantLabel(r.quadrant)}</p>
-                    <p className="mt-0.5 text-[10.5px] text-ink-500">
-                      {r.contains.length ? r.contains.join(', ') : 'no located finding in this cell'}
+                    <p className="text-xs font-medium text-slate-800">{quadrantLabel(r.quadrant)}</p>
+                    <p className="text-[10.5px] text-slate-500">
+                      {r.contains.length ? r.contains.join(', ') : 'No located finding in this cell'}
                     </p>
                   </div>
-                  <span className="tabular shrink-0 font-mono text-[11px] text-brand-300">
-                    {(r.weight * 100).toFixed(0)}
+                  <span className="tabular shrink-0 font-mono text-xs font-bold text-emerald-700">
+                    {(r.weight * 100).toFixed(0)}%
                   </span>
                 </div>
               ))}
@@ -333,14 +329,14 @@ export function ExplainCard({ data }: { data: ExplainabilityResult }) {
 
         {data.evidenceNotes.length > 0 ? (
           <div>
-            <SectionLabel>Why each finding matters</SectionLabel>
-            <div className="mt-2.5 space-y-2.5">
+            <SectionLabel>Clinical Significance by Finding</SectionLabel>
+            <div className="mt-2 space-y-2">
               {data.evidenceNotes.map((n) => (
-                <div key={n.lesionClass} className="border-l-2 border-brand-600/50 pl-3">
-                  <p className="text-[12px] font-semibold text-ink-100">
-                    {n.label} <span className="tabular text-ink-400">× {n.count}</span>
+                <div key={n.lesionClass} className="border-l-2 border-emerald-500 pl-3">
+                  <p className="text-xs font-bold text-slate-900">
+                    {n.label} <span className="tabular text-slate-500 font-normal">× {n.count}</span>
                   </p>
-                  <p className="mt-1 text-[11.5px] leading-relaxed text-ink-400">{n.why}</p>
+                  <p className="mt-0.5 text-xs text-slate-600">{n.why}</p>
                 </div>
               ))}
             </div>
@@ -362,35 +358,35 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
     <Panel className="animate-fade-up">
       <PanelHeader
         icon={<UserCheck className="h-4 w-4" aria-hidden />}
-        title="Stage 6 · Confidence & human-in-the-loop"
-        subtitle="Is the system confident enough for this result to stand without a doctor?"
+        title="Stage 6 · Confidence & human-in-the-loop safety"
+        subtitle="Evaluating multi-signal fusion to determine whether doctor sign-off is required."
       />
 
-      <div className="space-y-5 p-5">
+      <div className="space-y-4 p-4 sm:p-5">
         <div
           className={cn(
-            'rounded-xl border px-5 py-4',
-            status === 'good' && 'border-[#0ca30c]/40 bg-[#0ca30c]/8',
-            status === 'warning' && 'border-[#fab219]/45 bg-[#fab219]/8',
-            status === 'critical' && 'border-[#d03b3b]/50 bg-[#d03b3b]/10',
+            'rounded-xl border p-4',
+            status === 'good' && 'border-emerald-200 bg-emerald-50/60',
+            status === 'warning' && 'border-amber-200 bg-amber-50/60',
+            status === 'critical' && 'border-rose-200 bg-rose-50/60',
           )}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="min-w-[240px] flex-1">
+            <div className="min-w-[200px] flex-1">
               <StatusBadge status={status} size="lg">
                 {data.decisionLabel}
               </StatusBadge>
-              <p className="mt-3 text-[12.5px] leading-relaxed text-ink-300">{data.narrative}</p>
+              <p className="mt-2 text-xs sm:text-[13px] leading-relaxed text-slate-700">{data.narrative}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
-                Fused confidence
+              <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                Fused Confidence
               </p>
-              <p className="tabular mt-1 text-4xl leading-none font-semibold text-ink-50">
+              <p className="tabular mt-0.5 text-3xl sm:text-4xl font-extrabold text-slate-900 leading-none">
                 {data.finalConfidence}
-                <span className="text-base font-medium text-ink-500">/100</span>
+                <span className="text-sm font-normal text-slate-400">/100</span>
               </p>
-              <p className="mt-1 font-mono text-[10.5px] tracking-wide text-ink-500 uppercase">
+              <p className="mt-0.5 font-mono text-[10px] font-semibold text-slate-600 uppercase">
                 {data.band} band
               </p>
             </div>
@@ -398,15 +394,15 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
         </div>
 
         <div>
-          <SectionLabel>How the confidence was built</SectionLabel>
-          <div className="mt-3 space-y-4">
+          <SectionLabel>5-Signal Confidence Fusion Weights</SectionLabel>
+          <div className="mt-2.5 space-y-3">
             {data.factors.map((f) => (
               <div key={f.key}>
                 <Meter
                   label={
                     <span className="flex items-center gap-2">
                       {f.label}
-                      <span className="rounded bg-ink-800 px-1.5 py-0.5 font-mono text-[10px] text-ink-400">
+                      <span className="rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 font-mono text-[9.5px] font-semibold text-slate-600">
                         weight {f.weight.toFixed(2)}
                       </span>
                     </span>
@@ -416,7 +412,7 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
                   note={
                     <>
                       {f.note}{' '}
-                      <span className="tabular font-mono text-ink-400">
+                      <span className="tabular font-mono text-slate-500">
                         (contributes {(f.value * f.weight).toFixed(1)} pts)
                       </span>
                     </>
@@ -428,32 +424,31 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
         </div>
 
         {data.safetyOverrides.length > 0 ? (
-          <div className="rounded-lg border border-[#d03b3b]/40 bg-[#d03b3b]/8 p-4">
-            <p className="flex items-center gap-2 text-[12px] font-semibold text-[#ffb3b3]">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3.5">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-rose-800">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-              Safety rules triggered ({data.safetyOverrides.length})
+              Mandatory Safety Rules Triggered ({data.safetyOverrides.length})
             </p>
-            <ul className="mt-2.5 space-y-1.5">
+            <ul className="mt-2 space-y-1">
               {data.safetyOverrides.map((o) => (
-                <li key={o} className="text-[11.5px] leading-relaxed text-ink-300">
+                <li key={o} className="text-xs text-rose-700">
                   · {o}
                 </li>
               ))}
             </ul>
-            <p className="mt-3 border-t border-[#d03b3b]/25 pt-2.5 text-[11px] leading-relaxed text-ink-400">
-              Safety rules run after the confidence number and outrank it. A high score
-              cannot release a case that a rule has held back.
+            <p className="mt-2.5 border-t border-rose-200/80 pt-2 text-[10.5px] text-rose-600">
+              Safety rules outrank raw statistical confidence. Even with a high numerical score, cases with safety flags must be escalated to an ophthalmologist.
             </p>
           </div>
         ) : null}
 
         <div>
-          <SectionLabel>Reasoning</SectionLabel>
-          <ul className="mt-2.5 space-y-1.5">
+          <SectionLabel>Clinical Summary & Audit Trail</SectionLabel>
+          <ul className="mt-2 space-y-1">
             {data.reasons.map((r) => (
-              <li key={r} className="flex gap-2 text-[12px] leading-relaxed text-ink-400">
+              <li key={r} className="flex gap-2 text-xs text-slate-600">
                 <span
-                  className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-500"
+                  className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-400"
                   aria-hidden
                 />
                 {r}
@@ -475,9 +470,9 @@ export function GradeSummaryStrip({
   confidence: ConfidenceAssessment;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
+    <div className="flex flex-wrap items-center gap-2">
       <span
-        className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-extrabold text-white shadow-sm border border-black/10"
+        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold text-white shadow-2xs"
         style={{ background: `var(--dr-${grading.level})` }}
       >
         <BarChart3 className="h-3.5 w-3.5" aria-hidden />
@@ -486,8 +481,8 @@ export function GradeSummaryStrip({
       <StatusBadge status={decisionStatus(confidence.decision)} size="md">
         {confidence.decisionLabel}
       </StatusBadge>
-      <span className="tabular rounded-lg border border-slate-200 bg-white shadow-2xs px-3 py-1.5 font-mono text-[11.5px] font-bold text-slate-800">
-        {confidence.finalConfidence}/100 confidence
+      <span className="tabular rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-mono text-xs font-bold text-slate-700">
+        {confidence.finalConfidence}/100 conf
       </span>
     </div>
   );

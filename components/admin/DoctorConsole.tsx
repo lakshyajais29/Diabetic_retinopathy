@@ -9,9 +9,9 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
-  Sparkles,
   UserCheck,
   XCircle,
+  Lock,
 } from 'lucide-react';
 import {
   fetchScreeningHistoryAsync,
@@ -19,8 +19,7 @@ import {
   clearScreeningHistory,
   type ScreeningRecord,
 } from '@/lib/client/screeningStore';
-
-import { Lock } from 'lucide-react';
+import { cn } from '@/lib/ui';
 
 export function DoctorConsole() {
   const [records, setRecords] = useState<ScreeningRecord[]>([]);
@@ -57,36 +56,36 @@ export function DoctorConsole() {
 
   if (!authenticated) {
     return (
-      <div className="mx-auto max-w-md py-16 px-4 animate-fade-up">
-        <div className="medical-card-hero p-7 shadow-2xl bg-white border-emerald-500/30 space-y-5">
-          <div className="flex items-center gap-3 border-b border-slate-200/80 pb-4">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-cyan-500 text-white shadow-lg shadow-emerald-500/25">
-              <Lock className="h-6 w-6" />
+      <div className="mx-auto max-w-md py-12 px-4 animate-fade-up">
+        <div className="clinical-card p-6 sm:p-7 shadow-lg bg-white space-y-5">
+          <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-700 text-white shadow-xs">
+              <Lock className="h-5 w-5" />
             </span>
             <div>
-              <h2 className="text-xl font-extrabold text-slate-900 font-display">
-                Doctor Console Lock
+              <h2 className="text-base font-bold text-slate-900 font-display">
+                Ophthalmologist Workstation
               </h2>
-              <p className="text-xs font-medium text-slate-500">
-                Restricted to Registered Ophthalmologists
+              <p className="text-xs text-slate-500">
+                District Tele-Ophthalmology Referral Queue
               </p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-xs font-medium text-emerald-900 flex items-start gap-2.5">
-            <UserCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-start gap-2.5">
+            <UserCheck className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
             <div>
-              <span className="font-extrabold text-emerald-950">SIH Judge Demo Access:</span>
+              <span className="font-bold text-emerald-950">SIH Evaluator Demo Access:</span>
               <p className="mt-0.5 text-emerald-800">
-                Enter Doctor PIN: <code className="font-bold text-emerald-950">1234</code>
+                Security PIN: <code className="font-bold text-emerald-950 bg-emerald-100 px-1.5 py-0.5 rounded">1234</code>
               </p>
             </div>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 mb-1.5">
-                Security Access PIN
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Medical Officer PIN
               </label>
               <input
                 type="password"
@@ -94,28 +93,27 @@ export function DoctorConsole() {
                 onChange={(e) => setPinInput(e.target.value)}
                 placeholder="Enter 4-digit PIN (1234)"
                 maxLength={6}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs font-mono font-bold tracking-widest text-slate-900 focus:border-emerald-500 focus:bg-white focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-mono font-bold tracking-widest text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none transition"
                 required
               />
             </div>
 
             {pinError && (
-              <p className="flex items-start gap-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs font-semibold text-rose-800">
+              <p className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
                 <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
                 {pinError}
               </p>
             )}
 
-            <button type="submit" className="gradient-btn-primary w-full py-3 text-xs font-extrabold">
-              <Lock className="h-4 w-4" />
-              Authenticate & Unlock Console
+            <button type="submit" className="btn-primary w-full py-2.5 text-xs font-bold">
+              <Lock className="h-3.5 w-3.5" />
+              Authenticate & Access Triage Queue
             </button>
           </form>
         </div>
       </div>
     );
   }
-
 
   const handleAction = (id: string, newStatus: ScreeningRecord['status']) => {
     const updated = updateDoctorStatus(id, newStatus, doctorNoteInput);
@@ -146,128 +144,137 @@ export function DoctorConsole() {
   const approvedCount = records.filter((r) => r.status === 'Approved by Doctor').length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-7 p-4 sm:p-6 lg:p-8 animate-fade-up">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 animate-fade-up">
       {/* Header Banner */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-cyan-500 text-white shadow-lg shadow-emerald-500/25">
-              <UserCheck className="h-6 w-6" />
-            </span>
-            <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight font-display flex items-center gap-2">
-                District Ophthalmologist Console
-                <Sparkles className="h-4 w-4 text-emerald-500 animate-pulse" />
-              </h1>
-              <p className="mt-0.5 text-xs sm:text-sm text-slate-600">
-                Validate AI-screened diabetic retinopathy cases, review high-risk referrals, and sign off patient records.
-              </p>
-            </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-700 text-white shadow-xs">
+            <UserCheck className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-display">
+              District Ophthalmologist Workstation
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Validate AI-screened diabetic retinopathy referrals and authorize treatment sign-off.
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={reloadRecords} className="gradient-btn-secondary">
+        <div className="flex items-center gap-2">
+          <button onClick={reloadRecords} className="btn-secondary py-1.5 px-3 text-xs">
             <RefreshCw className="h-3.5 w-3.5" />
-            Refresh Queue
+            Refresh
           </button>
           <button
             onClick={() => {
               clearScreeningHistory();
               reloadRecords();
             }}
-            className="rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 shadow-sm transition"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 hover:text-slate-900 transition"
           >
             Reset Demo Data
           </button>
         </div>
       </div>
 
-      {/* Overview Metric Hero Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="medical-card-hero border-rose-200 bg-gradient-to-br from-white via-rose-50/30 to-rose-100/20 p-6">
+      {/* KPI Triage Metrics */}
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <div className="clinical-card border-rose-200 bg-rose-50/40 p-4 sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold tracking-wider text-rose-700 uppercase">
-              High Risk / Urgent Cases
+            <span className="text-[11px] font-bold tracking-wider text-rose-800 uppercase">
+              High Risk / Immediate
             </span>
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-rose-100 text-rose-600 shadow-sm">
-              <ShieldAlert className="h-4.5 w-4.5" />
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-rose-100 text-rose-700">
+              <ShieldAlert className="h-4 w-4" />
             </span>
           </div>
-          <p className="mt-4 text-4xl font-extrabold text-slate-900 tabular tracking-tight">{highRiskCount}</p>
-          <p className="mt-1 text-xs font-medium text-rose-700">Requires immediate specialist sign-off</p>
+          <p className="mt-2 text-3xl font-extrabold text-slate-900 tabular">{highRiskCount}</p>
+          <p className="mt-1 text-xs text-rose-800">Requires urgent specialist review</p>
         </div>
 
-        <div className="medical-card-hero border-amber-200 bg-gradient-to-br from-white via-amber-50/30 to-amber-100/20 p-6">
+        <div className="clinical-card border-amber-200 bg-amber-50/40 p-4 sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold tracking-wider text-amber-800 uppercase">
+            <span className="text-[11px] font-bold tracking-wider text-amber-800 uppercase">
               Pending Doctor Review
             </span>
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-amber-100 text-amber-700 shadow-sm">
-              <Clock className="h-4.5 w-4.5" />
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-amber-100 text-amber-700">
+              <Clock className="h-4 w-4" />
             </span>
           </div>
-          <p className="mt-4 text-4xl font-extrabold text-slate-900 tabular tracking-tight">{pendingCount}</p>
-          <p className="mt-1 text-xs font-medium text-amber-800">Awaiting clinical decision in queue</p>
+          <p className="mt-2 text-3xl font-extrabold text-slate-900 tabular">{pendingCount}</p>
+          <p className="mt-1 text-xs text-amber-800">Awaiting clinical decision in queue</p>
         </div>
 
-        <div className="medical-card-hero border-emerald-200 bg-gradient-to-br from-white via-emerald-50/30 to-emerald-100/20 p-6">
+        <div className="clinical-card border-emerald-200 bg-emerald-50/40 p-4 sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold tracking-wider text-emerald-800 uppercase">
+            <span className="text-[11px] font-bold tracking-wider text-emerald-800 uppercase">
               Approved & Signed Off
             </span>
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-100 text-emerald-700 shadow-sm">
-              <CheckCircle2 className="h-4.5 w-4.5" />
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-emerald-700">
+              <CheckCircle2 className="h-4 w-4" />
             </span>
           </div>
-          <p className="mt-4 text-4xl font-extrabold text-slate-900 tabular tracking-tight">{approvedCount}</p>
-          <p className="mt-1 text-xs font-medium text-emerald-800">Completed doctor sign-offs today</p>
+          <p className="mt-2 text-3xl font-extrabold text-slate-900 tabular">{approvedCount}</p>
+          <p className="mt-1 text-xs text-emerald-800">Completed doctor sign-offs</p>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="medical-card-hero flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between p-4">
+      {/* Filter & Search Toolbar */}
+      <div className="clinical-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-3 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search patient ID, name, or ICDR grade..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 pl-11 pr-4 py-2.5 text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all shadow-inner"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 py-2 text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none transition"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-400" />
-          <div className="flex rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          <Filter className="h-3.5 w-3.5 text-slate-400 shrink-0 ml-1" />
+          <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5">
             <button
               onClick={() => setStatusFilter('all')}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-                statusFilter === 'all' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-bold transition',
+                statusFilter === 'all'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
             >
               All Cases
             </button>
             <button
               onClick={() => setStatusFilter('pending')}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-                statusFilter === 'pending' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-bold transition',
+                statusFilter === 'pending'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
             >
               Pending
             </button>
             <button
               onClick={() => setStatusFilter('high-risk')}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-                statusFilter === 'high-risk' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-bold transition',
+                statusFilter === 'high-risk'
+                  ? 'bg-rose-700 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
             >
               High Risk
             </button>
             <button
               onClick={() => setStatusFilter('approved')}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-                statusFilter === 'approved' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-bold transition',
+                statusFilter === 'approved'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
             >
               Approved
             </button>
@@ -275,90 +282,161 @@ export function DoctorConsole() {
         </div>
       </div>
 
-      {/* Patient Referral Queue Table */}
-      <div className="medical-card-hero overflow-hidden">
+      {/* ================================================================== */}
+      {/* Mobile Card View (sm:hidden)                                       */}
+      {/* ================================================================== */}
+      <div className="space-y-3 sm:hidden">
+        {filteredRecords.length === 0 ? (
+          <div className="clinical-card p-8 text-center text-xs text-slate-500">
+            No patient encounters found matching criteria.
+          </div>
+        ) : (
+          filteredRecords.map((r) => (
+            <div key={r.id} className="clinical-card p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-bold text-slate-900">{r.patientName}</p>
+                  <p className="text-[11px] text-slate-500">
+                    {r.patientId} · {r.patientAge}y/{r.gender}
+                  </p>
+                </div>
+                <span className="font-mono text-[10.5px] text-slate-500">
+                  {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded bg-slate-50 border border-slate-100 p-2">
+                  <p className="text-[10px] text-slate-500 font-medium">Quality</p>
+                  <p className="font-bold text-slate-800 capitalize">
+                    {r.qualityVerdict} ({r.qualityScore}/100)
+                  </p>
+                </div>
+                <div className="rounded bg-slate-50 border border-slate-100 p-2">
+                  <p className="text-[10px] text-slate-500 font-medium">Severity</p>
+                  <p className="font-bold text-slate-800">{r.gradeLabel}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
+                <span
+                  className={cn(
+                    'clinical-badge text-[10px]',
+                    r.status === 'Approved by Doctor'
+                      ? 'badge-safe'
+                      : r.status === 'Recapture Requested'
+                      ? 'badge-critical'
+                      : 'badge-warning',
+                  )}
+                >
+                  {r.status}
+                </span>
+
+                <button
+                  onClick={() => {
+                    setSelectedRecord(r);
+                    setDoctorNoteInput(r.doctorNotes || '');
+                  }}
+                  className="btn-secondary py-1.5 px-3 text-xs"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  Review Case
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ================================================================== */}
+      {/* Desktop Triage Table (hidden sm:block)                             */}
+      {/* ================================================================== */}
+      <div className="clinical-card overflow-hidden hidden sm:block">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-slate-600 font-extrabold uppercase tracking-wider text-[11px]">
+            <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="px-5 py-4">Patient</th>
-                <th className="px-5 py-4">Timestamp</th>
-                <th className="px-5 py-4">Quality Gate</th>
-                <th className="px-5 py-4">AI ICDR Grade</th>
-                <th className="px-5 py-4">Referral Urgency</th>
-                <th className="px-5 py-4">Status</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+                <th className="px-4 py-3">Patient Encounter</th>
+                <th className="px-4 py-3">Time</th>
+                <th className="px-4 py-3">Quality Score</th>
+                <th className="px-4 py-3">AI ICDR Severity</th>
+                <th className="px-4 py-3">Urgency</th>
+                <th className="px-4 py-3">Triage Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
-                    No patient records found matching criteria.
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                    No patient records found matching filter.
                   </td>
                 </tr>
               ) : (
                 filteredRecords.map((r) => (
-                  <tr key={r.id} className="hover:bg-emerald-50/30 transition-colors duration-150 group">
-                    <td className="px-5 py-4">
-                      <div className="font-extrabold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">{r.patientName}</div>
-                      <div className="text-[11px] font-medium text-slate-500">
-                        {r.patientId} • {r.patientAge}y/{r.gender}
+                  <tr key={r.id} className="hover:bg-slate-50 transition">
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-slate-900">{r.patientName}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {r.patientId} · {r.patientAge}y / {r.gender}
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-slate-500 whitespace-nowrap tabular font-mono font-medium">
+                    <td className="px-4 py-3 tabular font-mono text-slate-500">
                       {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <span
-                        className={
+                        className={cn(
+                          'clinical-badge text-[10.5px]',
                           r.qualityVerdict === 'good'
-                            ? 'badge-emerald'
+                            ? 'badge-safe'
                             : r.qualityVerdict === 'borderline'
-                            ? 'badge-amber'
-                            : 'badge-rose'
-                        }
+                            ? 'badge-warning'
+                            : 'badge-critical',
+                        )}
                       >
                         {r.qualityVerdict.toUpperCase()} ({r.qualityScore}/100)
                       </span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <div className="font-bold text-slate-900">{r.gradeLabel}</div>
-                      <div className="text-[10px] text-slate-500 font-medium">ICDR Grade {r.icdrGrade}</div>
+                      <div className="text-[10px] text-slate-500">ICDR Grade {r.icdrGrade}</div>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <span
-                        className={`inline-block rounded-xl px-3 py-1 text-[11px] font-extrabold ${
+                        className={cn(
+                          'inline-block rounded-md px-2 py-0.5 text-[11px] font-bold',
                           r.referralUrgency === 'Immediate'
-                            ? 'bg-rose-100 text-rose-800 border border-rose-300 shadow-sm animate-pulse'
+                            ? 'bg-rose-100 text-rose-800 border border-rose-300'
                             : r.referralUrgency === 'Within 14 Days'
-                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : 'bg-slate-100 text-slate-700',
+                        )}
                       >
                         {r.referralUrgency}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <span
-                        className={
+                        className={cn(
+                          'clinical-badge text-[10.5px]',
                           r.status === 'Approved by Doctor'
-                            ? 'badge-emerald'
+                            ? 'badge-safe'
                             : r.status === 'Recapture Requested'
-                            ? 'badge-rose'
-                            : 'badge-amber'
-                        }
+                            ? 'badge-critical'
+                            : 'badge-warning',
+                        )}
                       >
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right space-x-2 whitespace-nowrap">
+                    <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => {
                           setSelectedRecord(r);
                           setDoctorNoteInput(r.doctorNotes || '');
                         }}
-                        className="gradient-btn-secondary py-1.5 px-3.5 text-xs"
+                        className="btn-secondary py-1 px-3 text-xs"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         Review
@@ -372,78 +450,82 @@ export function DoctorConsole() {
         </div>
       </div>
 
-      {/* Review Modal */}
+      {/* ================================================================== */}
+      {/* Case Review Modal                                                  */}
+      {/* ================================================================== */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md animate-fade-up">
-          <div className="medical-card-hero w-full max-w-2xl p-7 shadow-2xl space-y-6 bg-white border-emerald-500/30">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-fade-up">
+          <div className="clinical-card w-full max-w-2xl p-5 sm:p-6 shadow-2xl space-y-5 bg-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3.5">
               <div>
-                <h3 className="text-xl font-extrabold text-slate-900 font-display">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 font-display">
                   Case Review: {selectedRecord.patientName} ({selectedRecord.patientId})
                 </h3>
-                <p className="text-xs font-medium text-slate-500 mt-0.5">
-                  {selectedRecord.patientAge} Yrs / {selectedRecord.gender} • Screened at{' '}
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {selectedRecord.patientAge} Yrs / {selectedRecord.gender} · Encounter timestamp:{' '}
                   {new Date(selectedRecord.timestamp).toLocaleString()}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedRecord(null)}
-                className="grid h-8 w-8 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 font-bold transition"
+                className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
               >
                 ✕
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="glass-panel p-4 space-y-1">
-                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">
                   Quality Gate Verdict
                 </span>
-                <p className="text-base font-extrabold text-slate-900">
+                <p className="mt-0.5 text-sm font-bold text-slate-900">
                   {selectedRecord.qualityVerdict.toUpperCase()} ({selectedRecord.qualityScore}/100)
                 </p>
               </div>
-              <div className="glass-panel p-4 space-y-1">
-                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">
                   AI ICDR Classification
                 </span>
-                <p className="text-base font-extrabold text-slate-900">{selectedRecord.gradeLabel}</p>
+                <p className="mt-0.5 text-sm font-bold text-slate-900">{selectedRecord.gradeLabel}</p>
               </div>
             </div>
 
-            <div className="glass-panel p-4 space-y-1.5 text-xs">
-              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                Clinical Findings & Lesion Burden
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 text-xs space-y-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">
+                Clinical Recommendation Headline:
               </span>
-              <p className="text-slate-800 font-semibold">{selectedRecord.lesionSummary}</p>
+              <p className="text-slate-800 font-medium leading-relaxed">
+                {selectedRecord.lesionSummary}
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-extrabold text-slate-800">
-                Doctor Assessment & Clinical Notes:
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-800">
+                Ophthalmologist Clinical Directions & Observations:
               </label>
               <textarea
                 value={doctorNoteInput}
                 onChange={(e) => setDoctorNoteInput(e.target.value)}
-                placeholder="Enter notes or specific instructions for PHC screener..."
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none transition shadow-inner"
+                placeholder="Specify follow-up, laser schedule, anti-VEGF consultation, or feedback for PHC operator..."
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none transition"
                 rows={3}
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-5">
+            <div className="flex flex-wrap items-center justify-end gap-2.5 border-t border-slate-100 pt-4">
               <button
                 onClick={() => handleAction(selectedRecord.id, 'Recapture Requested')}
-                className="inline-flex items-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-xs font-extrabold text-rose-700 hover:bg-rose-100 transition shadow-sm"
+                className="btn-secondary text-rose-700 hover:text-rose-800 hover:border-rose-300 py-2 px-3.5 text-xs font-bold"
               >
-                <XCircle className="h-4 w-4" />
+                <XCircle className="h-3.5 w-3.5" />
                 Request Recapture
               </button>
               <button
                 onClick={() => handleAction(selectedRecord.id, 'Approved by Doctor')}
-                className="gradient-btn-primary"
+                className="btn-primary py-2 px-4 text-xs font-bold"
               >
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-3.5 w-3.5" />
                 Approve & Sign Off
               </button>
             </div>

@@ -29,49 +29,49 @@ export function ReportView({
   const image = result?.images.working ?? result?.images.original ?? null;
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-8 animate-fade-up">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 animate-fade-up">
       <div className="print-hide mb-4 flex items-center justify-between gap-3">
         <p className="text-xs font-medium text-slate-600">
-          Official Clinical Report — review on screen, print or export PDF for patient records.
+          Official Clinical Diagnostic Slip — view on screen, print, or export as PDF for patient records.
         </p>
         <button
           type="button"
           onClick={() => window.print()}
-          className="gradient-btn-secondary py-2 px-4 text-xs shadow-sm hover:shadow-md"
+          className="btn-secondary py-2 px-3.5 text-xs font-bold"
         >
           <Printer className="h-4 w-4 text-slate-700" aria-hidden />
           Print / Export PDF Slip
         </button>
       </div>
 
-      <article className="print-sheet medical-card bg-white p-8 border border-slate-200/80 shadow-2xl rounded-2xl">
+      <article className="print-sheet clinical-card bg-white p-6 sm:p-8 shadow-md">
         {/* ---- Letterhead ---- */}
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-6">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-5">
           <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-              <ScanEye className="h-6 w-6" aria-hidden />
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-700 text-white shadow-xs">
+              <ScanEye className="h-5 w-5" aria-hidden />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 font-display tracking-tight">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 font-display tracking-tight">
                 Diabetic Retinopathy Clinical Screening Report
               </h1>
-              <p className="print-muted mt-1 text-xs font-medium text-slate-600">
-                RetinaSetu · Staged Clinical Decision Support · District Screening Programme
+              <p className="mt-0.5 text-xs text-slate-500">
+                RetinaSetu Tele-Ophthalmology Network · Rural District Screening Programme
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="tabular font-mono text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+          <div className="text-left sm:text-right">
+            <p className="tabular font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
               {report.reportId}
             </p>
-            <p className="print-muted mt-1.5 text-[11px] font-semibold text-slate-500">
+            <p className="mt-1 text-[11px] font-medium text-slate-500">
               {formatDateTime(report.generatedAt)}
             </p>
           </div>
         </header>
 
-        {/* ---- Patient ---- */}
-        <section className="grid gap-x-8 gap-y-4 border-b border-slate-200 py-6 sm:grid-cols-3">
+        {/* ---- Patient Information Grid ---- */}
+        <section className="grid gap-x-6 gap-y-3.5 border-b border-slate-200 py-5 grid-cols-2 sm:grid-cols-3">
           <ReportField label="Patient ID" value={report.patient.patientId || '—'} />
           <ReportField
             label="Age / Sex"
@@ -103,38 +103,39 @@ export function ReportView({
           <ReportField label="Ophthalmic Screener" value={report.patient.operator || '—'} />
         </section>
 
-        {/* ---- Verdict ---- */}
+        {/* ---- Clinical Severity Verdict ---- */}
         <section
           className={cn(
-            'print-card my-6 rounded-2xl border p-5 shadow-sm',
-            status === 'good' && 'border-emerald-300 bg-emerald-50/90',
-            status === 'warning' && 'border-amber-300 bg-amber-50/90',
-            status === 'critical' && 'border-rose-300 bg-rose-50/90',
+            'my-5 rounded-xl border p-4 sm:p-5',
+            status === 'good' && 'border-emerald-200 bg-emerald-50/70',
+            status === 'warning' && 'border-amber-200 bg-amber-50/70',
+            status === 'critical' && 'border-rose-200 bg-rose-50/70',
           )}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-[260px] flex-1">
+            <div className="min-w-[240px] flex-1">
               <StatusBadge status={status} size="lg">
                 {report.confidence.decisionLabel}
               </StatusBadge>
-              <p className="mt-3 text-base font-bold text-slate-900 leading-snug">
+              <p className="mt-2.5 text-sm sm:text-base font-bold text-slate-900 leading-snug">
                 {report.recommendation.headline}
               </p>
-              <p className="print-muted mt-2 text-xs font-semibold text-slate-700">
-                Recommended Follow-up: <span className="font-bold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-2">{report.recommendation.followUpInterval}</span>
+              <p className="mt-1.5 text-xs text-slate-700">
+                Recommended Follow-up:{' '}
+                <span className="font-bold text-slate-900">{report.recommendation.followUpInterval}</span>
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div
-                className="grid h-14 w-14 place-items-center rounded-2xl text-2xl font-black text-white shadow-md border border-black/10"
+                className="grid h-14 w-14 place-items-center rounded-xl text-2xl font-extrabold text-white shadow-xs"
                 style={{ background: `var(--dr-${report.grade.level})` }}
               >
                 {report.grade.level}
               </div>
               <div>
-                <p className="text-sm font-extrabold text-slate-900">{spec.clinical}</p>
-                <p className="print-muted mt-0.5 text-xs font-medium text-slate-600">
-                  {report.grade.referable ? 'Referral Recommended' : 'Routine Screening'} · Urgency:{' '}
+                <p className="text-sm font-bold text-slate-900">{spec.clinical}</p>
+                <p className="mt-0.5 text-xs text-slate-600">
+                  {report.grade.referable ? 'Referral Recommended' : 'Routine Annual Screening'} · Urgency:{' '}
                   <span className="font-bold text-slate-900 capitalize">{report.grade.urgency}</span>
                 </p>
               </div>
@@ -142,8 +143,8 @@ export function ReportView({
           </div>
         </section>
 
-        {/* ---- Key numbers ---- */}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* ---- Key Diagnostic Numbers ---- */}
+        <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           <ReportStat
             label="ICDR Grade"
             value={`Level ${report.grade.level}`}
@@ -152,7 +153,7 @@ export function ReportView({
           <ReportStat
             label="Confidence"
             value={`${report.confidence.value}%`}
-            hint={`${report.confidence.band} confidence`}
+            hint={`${report.confidence.band} band`}
           />
           <ReportStat
             label="Image Quality"
@@ -166,11 +167,11 @@ export function ReportView({
           />
         </section>
 
-        {/* ---- Visual evidence ---- */}
+        {/* ---- Visual Retinal Evidence ---- */}
         {image ? (
-          <section className="print-keep mt-7">
+          <section className="print-keep mt-6">
             <ReportHeading>Visual Retinal Evidence</ReportHeading>
-            <div className="mt-4 grid gap-4 sm:grid-cols-[1.4fr_1fr]">
+            <div className="mt-3 grid gap-3 sm:grid-cols-[1.4fr_1fr]">
               <ImageViewer
                 src={image}
                 alt="Fundus photograph with detected findings marked"
@@ -180,16 +181,16 @@ export function ReportView({
                 layers={{ anatomy: true, lesions: true, heatmap: false }}
                 visibleClasses={new Set(LESION_CLASSES)}
               />
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
-                <p className="print-muted text-xs font-medium text-slate-600 leading-relaxed">
-                  Anatomical landmarks and located lesion candidates. Shapes differ per class for CVD accessibility and greyscale print clarity.
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Anatomical landmarks and located lesion candidates. Shapes differ per class for accessibility and print clarity.
                 </p>
-                <dl className="mt-4 space-y-2.5">
+                <dl className="mt-3 space-y-2">
                   {present.length === 0 ? (
-                    <p className="text-xs font-medium text-slate-500">No pathological lesions located.</p>
+                    <p className="text-xs text-slate-500">No pathological lesions located.</p>
                   ) : (
                     present.map((c) => (
-                      <div key={c} className="flex items-center justify-between gap-3">
+                      <div key={c} className="flex items-center justify-between gap-2">
                         <dt className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                           <span
                             aria-hidden
@@ -203,7 +204,7 @@ export function ReportView({
                           />
                           {LESION_TAXONOMY[c].label}
                         </dt>
-                        <dd className="tabular font-mono text-xs font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                        <dd className="tabular font-mono text-xs font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
                           {report.evidence.counts[c]}
                         </dd>
                       </div>
@@ -215,12 +216,12 @@ export function ReportView({
           </section>
         ) : null}
 
-        {/* ---- Key Findings ---- */}
-        <section className="print-keep mt-7">
+        {/* ---- Key Clinical Findings ---- */}
+        <section className="print-keep mt-6">
           <ReportHeading>Key Clinical Findings</ReportHeading>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-2.5 space-y-1.5">
             {report.keyFindings.map((f) => (
-              <li key={f} className="flex gap-2.5 text-xs font-medium leading-relaxed text-slate-700">
+              <li key={f} className="flex gap-2 text-xs text-slate-700">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" aria-hidden />
                 {f}
               </li>
@@ -228,13 +229,13 @@ export function ReportView({
           </ul>
         </section>
 
-        {/* ---- Recommendation ---- */}
-        <section className="print-keep mt-7">
+        {/* ---- Recommendation Actions ---- */}
+        <section className="print-keep mt-6">
           <ReportHeading>Recommended Action Steps</ReportHeading>
-          <ol className="mt-3 space-y-2.5">
+          <ol className="mt-2.5 space-y-2">
             {report.recommendation.actions.map((a, i) => (
-              <li key={a} className="flex gap-3 text-xs font-medium leading-relaxed text-slate-800">
-                <span className="tabular font-mono text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <li key={a} className="flex gap-2.5 text-xs text-slate-800">
+                <span className="tabular font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {a}
@@ -243,37 +244,37 @@ export function ReportView({
           </ol>
         </section>
 
-        {/* ---- Audit trail ---- */}
-        <section className="print-keep mt-7">
+        {/* ---- Audit Trail ---- */}
+        <section className="print-keep mt-6">
           <ReportHeading>Processing Audit Trail</ReportHeading>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[440px] text-left text-xs border-collapse">
+          <div className="mt-2.5 overflow-x-auto">
+            <table className="w-full min-w-[400px] text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider text-[10px]">
-                  <th className="pb-2.5">#</th>
-                  <th className="pb-2.5">Stage</th>
-                  <th className="pb-2.5">Method</th>
-                  <th className="pb-2.5">Duration</th>
-                  <th className="pb-2.5">Status</th>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                  <th className="pb-2">#</th>
+                  <th className="pb-2">Stage</th>
+                  <th className="pb-2">Method</th>
+                  <th className="pb-2">Duration</th>
+                  <th className="pb-2">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 text-slate-800">
+              <tbody className="divide-y divide-slate-100 text-slate-800">
                 {report.auditTrail.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/80 transition">
-                    <td className="tabular py-2.5 font-mono text-slate-500 font-medium">{t.index}</td>
-                    <td className="py-2.5 font-bold text-slate-900">{t.title}</td>
-                    <td className="py-2.5 text-slate-600 font-medium capitalize">
+                  <tr key={t.id}>
+                    <td className="tabular py-2 font-mono text-slate-500">{t.index}</td>
+                    <td className="py-2 font-bold text-slate-900">{t.title}</td>
+                    <td className="py-2 text-slate-600 capitalize">
                       {t.provenance}
                       {t.engine ? ` · ${t.engine}` : ''}
                     </td>
-                    <td className="tabular py-2.5 font-mono text-slate-700 font-semibold">
+                    <td className="tabular py-2 font-mono text-slate-700">
                       {formatDuration(t.durationMs)}
                     </td>
-                    <td className="py-2.5">
+                    <td className="py-2">
                       {t.degraded ? (
-                        <span className="text-amber-700 font-extrabold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">degraded</span>
+                        <span className="badge-amber text-[10px]">degraded</span>
                       ) : (
-                        <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">OK</span>
+                        <span className="badge-emerald text-[10px]">passed</span>
                       )}
                     </td>
                   </tr>
@@ -283,25 +284,25 @@ export function ReportView({
           </div>
         </section>
 
-        {/* ---- Signature ---- */}
-        <footer className="mt-8 border-t border-slate-200 pt-6">
-          <div className="grid gap-6 sm:grid-cols-2">
+        {/* ---- Doctor Signature Block ---- */}
+        <footer className="mt-7 border-t border-slate-200 pt-5">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <p className="text-[10.5px] font-extrabold tracking-wider text-slate-600 uppercase">
-                Reviewing Ophthalmologist Signature
+              <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                Reviewing Ophthalmologist Sign-Off
               </p>
-              <div className="mt-8 border-t border-slate-300 pt-2">
-                <p className="text-[11px] font-medium text-slate-500">
+              <div className="mt-6 border-t border-slate-300 pt-1.5">
+                <p className="text-[11px] text-slate-500">
                   Doctor Name, Registration No., Signature & Date
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-[10.5px] font-extrabold tracking-wider text-slate-600 uppercase">
-                Medical Disclaimer
+              <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                Clinical Disclaimer
               </p>
-              <p className="mt-2 text-[11px] leading-relaxed font-medium text-slate-500">
-                This report was generated by an automated clinical decision-support system. It is not a standalone diagnosis. Clinical responsibility rests with the reviewing ophthalmologist. Generated {formatDateTime(report.generatedAt)}.
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                This report was generated by an automated clinical decision-support system. It is not an independent diagnosis. Clinical responsibility rests with the reviewing medical professional. Generated {formatDateTime(report.generatedAt)}.
               </p>
             </div>
           </div>
@@ -313,7 +314,7 @@ export function ReportView({
 
 function ReportHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="border-b border-slate-200 pb-2 text-xs font-extrabold tracking-wider text-slate-800 uppercase">
+    <h2 className="border-b border-slate-200 pb-1.5 text-xs font-bold tracking-wider text-slate-800 uppercase">
       {children}
     </h2>
   );
@@ -322,10 +323,10 @@ function ReportHeading({ children }: { children: React.ReactNode }) {
 function ReportField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
+      <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
         {label}
       </p>
-      <p className="mt-1 text-xs font-bold text-slate-900 capitalize">{value}</p>
+      <p className="mt-0.5 text-xs font-bold text-slate-900 capitalize">{value}</p>
     </div>
   );
 }
@@ -340,12 +341,12 @@ function ReportStat({
   hint: string;
 }) {
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 shadow-2xs">
-      <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+      <p className="text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
         {label}
       </p>
-      <p className="tabular mt-1.5 text-lg font-black text-slate-900">{value}</p>
-      <p className="mt-1 text-[11px] font-semibold text-slate-600 capitalize">{hint}</p>
+      <p className="tabular mt-1 text-base font-extrabold text-slate-900">{value}</p>
+      <p className="mt-0.5 text-[10.5px] font-medium text-slate-600 capitalize">{hint}</p>
     </div>
   );
 }

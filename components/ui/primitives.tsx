@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, CircleAlert, Info, OctagonAlert } from 'lu
 import { cn, STATUS_STYLES, type StatusRole } from '@/lib/ui';
 
 /* ------------------------------------------------------------------ */
-/* Surfaces                                                             */
+/* Clinical Surfaces                                                  */
 /* ------------------------------------------------------------------ */
 
 export function Panel({
@@ -18,7 +18,7 @@ export function Panel({
   return (
     <Tag
       className={cn(
-        'rounded-xl border border-ink-800 bg-panel/90 shadow-panel backdrop-blur-sm',
+        'rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_0_rgba(15,23,42,0.04)]',
         className,
       )}
     >
@@ -39,15 +39,19 @@ export function PanelHeader({
   icon?: ReactNode;
 }) {
   return (
-    <header className="flex items-start justify-between gap-4 border-b border-ink-800 px-5 py-4">
-      <div className="flex min-w-0 items-start gap-3">
-        {icon ? <div className="mt-0.5 text-brand-300">{icon}</div> : null}
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        {icon ? (
+          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+            {icon}
+          </div>
+        ) : null}
         <div className="min-w-0">
-          <h3 className="text-[13px] font-semibold tracking-wide text-ink-100 uppercase">
+          <h3 className="text-xs font-bold tracking-wide text-slate-900 uppercase">
             {title}
           </h3>
           {subtitle ? (
-            <p className="mt-1 text-[13px] leading-relaxed text-ink-400">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">{subtitle}</p>
           ) : null}
         </div>
       </div>
@@ -60,7 +64,7 @@ export function SectionLabel({ children, className }: { children: ReactNode; cla
   return (
     <p
       className={cn(
-        'text-[11px] font-semibold tracking-[0.14em] text-ink-400 uppercase',
+        'text-[10.5px] font-bold tracking-[0.1em] text-slate-500 uppercase',
         className,
       )}
     >
@@ -101,9 +105,9 @@ export function StatusBadge({
         style.bg,
         style.border,
         style.text,
-        size === 'sm' && 'px-2 py-0.5 text-[11px]',
+        size === 'sm' && 'px-2 py-0.5 text-[10.5px]',
         size === 'md' && 'px-2.5 py-1 text-xs',
-        size === 'lg' && 'px-3.5 py-1.5 text-sm',
+        size === 'lg' && 'px-3 py-1.5 text-xs font-bold',
         className,
       )}
     >
@@ -128,7 +132,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md border border-ink-700 bg-ink-850/70 px-2 py-1 text-[11px] font-medium text-ink-200',
+        'inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700',
         className,
       )}
     >
@@ -145,7 +149,7 @@ export function Chip({
 }
 
 /* ------------------------------------------------------------------ */
-/* Stat tile — a single number needs no chart.                          */
+/* Stat tile — single clinical metric with high legibility              */
 /* ------------------------------------------------------------------ */
 
 export function StatTile({
@@ -166,7 +170,7 @@ export function StatTile({
   return (
     <div
       className={cn(
-        'rounded-lg border border-ink-800 bg-ink-900/60 px-4 py-3.5',
+        'rounded-lg border border-slate-200 bg-slate-50/70 p-3 sm:p-3.5',
         className,
       )}
     >
@@ -177,21 +181,23 @@ export function StatTile({
             className={cn('h-1.5 w-1.5 shrink-0 rounded-full', STATUS_STYLES[status].dot)}
           />
         ) : null}
-        <p className="text-[11px] font-medium tracking-[0.08em] text-ink-400 uppercase">
+        <p className="text-[10px] font-bold tracking-[0.08em] text-slate-500 uppercase">
           {label}
         </p>
       </div>
-      <p className="mt-2 flex items-baseline gap-1">
-        <span className="text-2xl leading-none font-semibold text-ink-50">{value}</span>
-        {unit ? <span className="text-xs font-medium text-ink-400">{unit}</span> : null}
+      <p className="mt-1.5 flex items-baseline gap-1">
+        <span className="text-xl sm:text-2xl leading-none font-bold text-slate-900 tabular">
+          {value}
+        </span>
+        {unit ? <span className="text-xs font-semibold text-slate-500">{unit}</span> : null}
       </p>
-      {hint ? <p className="mt-1.5 text-[11px] leading-snug text-ink-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[11px] text-slate-500 line-clamp-1">{hint}</p> : null}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Meter — magnitude as length in one hue, with the value written out.  */
+/* Meter — magnitude as length, clinical high-contrast                  */
 /* ------------------------------------------------------------------ */
 
 export function Meter({
@@ -214,44 +220,43 @@ export function Meter({
   compact?: boolean;
 }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
-  const fill = colour ?? (status ? STATUS_STYLES[status].var : 'var(--viz-series-1)');
+  const fill = colour ?? (status ? STATUS_STYLES[status].var : '#059669');
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <span className={cn('text-ink-200', compact ? 'text-xs' : 'text-[13px] font-medium')}>
+        <span className={cn('text-slate-700', compact ? 'text-xs' : 'text-xs font-medium')}>
           {label}
         </span>
-        <span className="tabular text-[13px] font-semibold text-ink-100">
+        <span className="tabular font-mono text-xs font-semibold text-slate-900">
           {Math.round(value)}
-          <span className="text-ink-500">{suffix}</span>
+          <span className="text-slate-400 font-normal">{suffix}</span>
         </span>
       </div>
       <div
-        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink-800"
+        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
         role="meter"
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={typeof label === 'string' ? label : undefined}
       >
-        {/* 4px rounded data-end, anchored to the baseline. */}
         <div
-          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          className="h-full rounded-full transition-[width] duration-300 ease-out"
           style={{ width: `${pct}%`, background: fill }}
         />
       </div>
-      {note ? <p className="mt-1.5 text-[11px] leading-snug text-ink-500">{note}</p> : null}
+      {note ? <p className="mt-1 text-[10.5px] text-slate-500">{note}</p> : null}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Misc                                                                 */
+/* Misc                                                               */
 /* ------------------------------------------------------------------ */
 
 export function Divider({ className }: { className?: string }) {
-  return <div className={cn('h-px w-full bg-ink-800', className)} />;
+  return <div className={cn('h-px w-full bg-slate-200', className)} />;
 }
 
 export function EmptyState({
@@ -266,20 +271,20 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      {icon ? <div className="mb-4 text-ink-600">{icon}</div> : null}
-      <h3 className="text-sm font-semibold text-ink-200">{title}</h3>
-      <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-ink-500">{description}</p>
-      {action ? <div className="mt-5">{action}</div> : null}
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
+      {icon ? <div className="mb-3 text-slate-400">{icon}</div> : null}
+      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">{description}</p>
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }
 
 export function KeyValue({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-1.5">
-      <dt className="text-[12px] text-ink-400">{label}</dt>
-      <dd className="text-right text-[12px] font-medium text-ink-200">{value}</dd>
+    <div className="flex items-baseline justify-between gap-4 py-1 border-b border-slate-100 last:border-0">
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="text-right text-xs font-medium text-slate-800 tabular">{value}</dd>
     </div>
   );
 }

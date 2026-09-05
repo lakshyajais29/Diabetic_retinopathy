@@ -1,7 +1,14 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { Camera, FileImage, Info, Upload, X, Sparkles } from 'lucide-react';
+import {
+  Camera,
+  FileImage,
+  Info,
+  Upload,
+  X,
+  Smartphone,
+} from 'lucide-react';
 import type { PatientContext } from '@/lib/pipeline/types';
 import { cn } from '@/lib/ui';
 
@@ -19,23 +26,31 @@ const EMPTY: PatientContext = {
 const SAMPLES = [
   {
     file: 'phantom-clean.jpg',
-    label: 'Healthy Retina (No DR)',
-    hint: 'No lesions — exercises normal ICDR Grade 0 path',
+    label: 'Normal Retina (Grade 0)',
+    condition: 'Safe',
+    badge: 'badge-safe',
+    hint: 'No lesions. Verifies healthy eye screening path.',
   },
   {
     file: 'phantom-moderate.jpg',
-    label: 'Moderate NPDR Burden',
-    hint: 'Microaneurysms, haemorrhages and exudates',
+    label: 'Moderate NPDR (Grade 2)',
+    condition: 'Referral Required',
+    badge: 'badge-warning',
+    hint: 'Microaneurysms, hemorrhages and hard exudates.',
   },
   {
     file: 'phantom-proliferative.jpg',
-    label: 'Advanced Proliferative DR',
-    hint: 'Dense lesions plus neovascularisation pattern',
+    label: 'Proliferative DR (Grade 4)',
+    condition: 'Urgent Referral',
+    badge: 'badge-critical',
+    hint: 'Severe lesions with neovascularisation pattern.',
   },
   {
     file: 'phantom-unusable.jpg',
     label: 'Ungradeable Capture',
-    hint: 'Defocused/under-lit — tests Quality Gate halt',
+    condition: 'Recapture Trigger',
+    badge: 'badge-serious',
+    hint: 'Under-lit / defocused capture that tests Quality Gate.',
   },
 ];
 
@@ -53,17 +68,18 @@ export function IntakePanel({
   const [preview, setPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const accept = useCallback((next: File | null) => {
     setLocalError(null);
     if (!next) return;
     if (!next.type.startsWith('image/')) {
-      setLocalError('That file is not an image. Upload a JPEG, PNG or WebP fundus photograph.');
+      setLocalError('File must be a valid image (JPEG, PNG, or WebP fundus capture).');
       return;
     }
     if (next.size > 20 * 1024 * 1024) {
-      setLocalError('That image is larger than 20 MB. Export it at a lower resolution first.');
+      setLocalError('File exceeds 20 MB limit. Please compress or select a lower resolution image.');
       return;
     }
     setFile(next);
@@ -83,11 +99,11 @@ export function IntakePanel({
         accept(new File([blob], name, { type: blob.type || 'image/jpeg' }));
         setPatient((p) => ({
           ...p,
-          notes: p.notes || `Sample loaded: ${label}. Tested for SIH clinical evaluation.`,
+          notes: p.notes || `Synthetic test phantom: ${label} loaded for clinical evaluation.`,
         }));
       } catch {
         setLocalError(
-          'Sample images are not available in this build. Upload a fundus photograph instead.',
+          'Sample phantoms are not available in this environment. Please upload a fundus photograph.',
         );
       }
     },
@@ -99,31 +115,33 @@ export function IntakePanel({
 
   const submit = () => {
     if (!file) {
-      setLocalError('Attach a fundus photograph before starting the screening.');
+      setLocalError('Please attach or capture a fundus photograph before starting screening.');
       return;
     }
     onStart(file, patient);
   };
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 lg:grid-cols-[1.15fr_0.85fr] animate-fade-up">
-      {/* ---- Capture ---- */}
-      <div className="medical-card-hero p-6 sm:p-7">
-        <div className="flex items-center gap-3 border-b border-slate-200/80 pb-4 mb-5">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-cyan-500 text-white shadow-md shadow-emerald-500/20">
-            <Camera className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-lg font-extrabold text-slate-900 font-display flex items-center gap-1.5">
-              Fundus Image Intake
-              <Sparkles className="h-4 w-4 text-emerald-500" />
-            </h2>
-            <p className="text-xs font-medium text-slate-600">
-              Upload posterior-pole eye capture from Primary Health Centre camera.
-            </p>
+    <div className="mx-auto grid max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] animate-fade-up">
+      {/* ================================================================== */}
+      {/* Retinal Capture Upload & Camera                                     */}
+      {/* ================================================================== */}
+      <div className="clinical-card p-5 sm:p-6 space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <Camera className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Fundus Image Intake</h2>
+              <p className="text-xs text-slate-500">
+                Posterior-pole 45° capture of macula and optic disc
+              </p>
+            </div>
           </div>
         </div>
 
+        {/* Dropzone / Preview */}
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -136,19 +154,19 @@ export function IntakePanel({
             accept(e.dataTransfer.files?.[0] ?? null);
           }}
           className={cn(
-            'relative overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-200 shadow-inner',
+            'relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-150',
             dragging
-              ? 'border-emerald-500 bg-emerald-500/10'
-              : 'border-slate-300 bg-slate-50/80 hover:border-emerald-500/50 hover:bg-white',
+              ? 'border-emerald-500 bg-emerald-50/50'
+              : 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white',
           )}
         >
           {preview ? (
-            <div className="relative p-2">
+            <div className="relative p-2 bg-[#090d16] rounded-xl flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview}
                 alt="Fundus photograph awaiting screening"
-                className="mx-auto block max-h-[340px] w-auto rounded-xl shadow-md"
+                className="max-h-[300px] w-auto rounded-lg object-contain"
               />
               <button
                 type="button"
@@ -159,101 +177,134 @@ export function IntakePanel({
                     return null;
                   });
                 }}
-                className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-xl bg-white/90 text-slate-600 shadow-md transition hover:bg-rose-500 hover:text-white"
+                className="absolute top-3 right-3 grid h-7 w-7 place-items-center rounded-lg bg-slate-900/80 text-slate-300 hover:bg-rose-600 hover:text-white transition"
                 aria-label="Remove image"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="flex w-full flex-col items-center gap-3 px-6 py-12 text-center group"
-            >
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-lg shadow-emerald-500/10 transition-transform duration-300 group-hover:scale-110">
-                <Upload className="h-7 w-7" aria-hidden />
-              </span>
-              <span className="text-sm font-extrabold text-slate-900">
-                Drop fundus photograph here, or browse
-              </span>
-              <span className="max-w-sm text-xs font-medium text-slate-500 leading-relaxed">
-                JPEG, PNG or WebP up to 20 MB. Compatible with standard retinal camera datasets (APTOS, IDRiD, Messidor).
-              </span>
-            </button>
+            <div className="flex flex-col items-center justify-center gap-3 p-6 sm:p-8 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <Upload className="h-6 w-6" aria-hidden />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900">
+                  Select or drag fundus photograph here
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  Supports JPEG, PNG, TIFF up to 20 MB (APTOS, IDRiD, Messidor compliant)
+                </p>
+              </div>
+
+              {/* Action Buttons for Mobile & Desktop */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-secondary py-2 px-3.5 text-xs font-semibold"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Browse Files
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="btn-secondary py-2 px-3.5 text-xs font-semibold sm:hidden"
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                  Take Photo
+                </button>
+              </div>
+            </div>
           )}
 
+          {/* Hidden Inputs */}
           <input
-            ref={inputRef}
+            ref={fileInputRef}
             type="file"
             accept="image/*"
+            className="sr-only"
+            onChange={(e) => accept(e.target.files?.[0] ?? null)}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
             className="sr-only"
             onChange={(e) => accept(e.target.files?.[0] ?? null)}
           />
         </div>
 
         {file ? (
-          <p className="mt-3 flex items-center gap-2 font-mono text-xs font-semibold text-emerald-700">
-            <FileImage className="h-4 w-4 text-emerald-600" aria-hidden />
-            {file.name} · {(file.size / 1024).toFixed(0)} KB
-          </p>
+          <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs">
+            <span className="flex items-center gap-1.5 font-mono text-slate-700 truncate">
+              <FileImage className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              {file.name}
+            </span>
+            <span className="font-mono text-slate-500 shrink-0">
+              {(file.size / 1024).toFixed(0)} KB
+            </span>
+          </div>
         ) : null}
 
-        <div className="mt-7 border-t border-slate-200/80 pt-5">
-          <span className="text-xs font-extrabold tracking-wider text-slate-500 uppercase">
-            Or select SIH Demo Preset
-          </span>
-          <p className="mt-1 text-xs text-slate-500">
-            Pre-calibrated retinal phantoms to demonstrate specific pipeline execution paths.
+        {/* Demo Phantoms */}
+        <div className="border-t border-slate-100 pt-4">
+          <p className="text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
+            Test Phantoms (1-Tap Simulation)
           </p>
-          <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-2.5 grid gap-2 grid-cols-1 sm:grid-cols-2">
             {SAMPLES.map((s) => (
               <button
                 key={s.file}
                 type="button"
                 onClick={() => loadSample(s.file, s.label)}
-                className="glass-panel p-3.5 text-left transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-50/50 hover:-translate-y-0.5 shadow-sm"
+                className="rounded-lg border border-slate-200 bg-slate-50/70 p-2.5 text-left transition hover:border-emerald-300 hover:bg-emerald-50/40"
               >
-                <span className="block text-xs font-extrabold text-slate-900">{s.label}</span>
-                <span className="mt-0.5 block text-[11px] font-medium text-slate-500 leading-snug">
-                  {s.hint}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900">{s.label}</span>
+                  <span className={cn('clinical-badge text-[9.5px]', s.badge)}>
+                    {s.condition}
+                  </span>
+                </div>
+                <p className="mt-1 text-[10.5px] text-slate-500 leading-snug">{s.hint}</p>
               </button>
             ))}
           </div>
         </div>
 
-        {(localError || error) ? (
-          <p
+        {(localError || error) && (
+          <div
             role="alert"
-            className="mt-5 flex items-start gap-2.5 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-xs font-semibold leading-relaxed text-rose-800 shadow-sm"
+            className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800"
           >
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden />
-            {localError ?? error}
-          </p>
-        ) : null}
+            <span>{localError ?? error}</span>
+          </div>
+        )}
       </div>
 
-      {/* ---- Encounter Details ---- */}
-      <div className="medical-card-hero p-6 sm:p-7 self-start">
-        <div className="border-b border-slate-200/80 pb-4 mb-5">
-          <h2 className="text-lg font-extrabold text-slate-900 font-display">Patient Encounter</h2>
-          <p className="text-xs font-medium text-slate-500">
-            Clinical context recorded for ophthalmologist review.
-          </p>
+      {/* ================================================================== */}
+      {/* Patient Encounter Details Form                                     */}
+      {/* ================================================================== */}
+      <div className="clinical-card p-5 sm:p-6 space-y-4 self-start">
+        <div className="border-b border-slate-100 pb-3">
+          <h2 className="text-sm font-bold text-slate-900">Patient Encounter Record</h2>
+          <p className="text-xs text-slate-500">Clinical identifiers and metadata</p>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Patient ID">
+        <div className="space-y-3.5">
+          <div className="grid grid-cols-2 gap-2.5">
+            <Field label="Patient ID / Encounter #">
               <input
                 className={inputClass}
                 value={patient.patientId}
                 onChange={(e) => set('patientId', e.target.value)}
-                placeholder="PHC-2291"
+                placeholder="PAT-8842"
               />
             </Field>
-            <Field label="Age">
+            <Field label="Age (Years)">
               <input
                 className={inputClass}
                 value={patient.age}
@@ -280,28 +331,38 @@ export function IntakePanel({
                 value={patient.eye}
                 onChange={(e) => set('eye', e.target.value as PatientContext['eye'])}
               >
-                <option value="unstated">Not stated</option>
+                <option value="unstated">Auto-Detect / Unstated</option>
                 <option value="right">Right (OD)</option>
                 <option value="left">Left (OS)</option>
               </select>
             </Field>
           </div>
 
+          <Field label="Diabetes Duration (Years)">
+            <input
+              className={inputClass}
+              value={patient.diabetesDurationYears}
+              onChange={(e) => set('diabetesDurationYears', e.target.value)}
+              inputMode="numeric"
+              placeholder="e.g. 8"
+            />
+          </Field>
+
           <Field label="Primary Health Centre (PHC)">
             <input
               className={inputClass}
               value={patient.phc}
               onChange={(e) => set('phc', e.target.value)}
-              placeholder="PHC Kadegaon, Sangli"
+              placeholder="e.g. PHC Kadegaon, Sangli"
             />
           </Field>
 
-          <Field label="Clinical Notes & History">
+          <Field label="Clinical Observations / Vitals">
             <textarea
-              className={cn(inputClass, 'min-h-[76px] resize-y')}
+              className={cn(inputClass, 'min-h-[70px] resize-y')}
               value={patient.notes}
               onChange={(e) => set('notes', e.target.value)}
-              placeholder="Reported blurring, poor glycaemic control, laser history..."
+              placeholder="HbA1c levels, vision complaints, previous laser history..."
             />
           </Field>
 
@@ -309,9 +370,9 @@ export function IntakePanel({
             type="button"
             onClick={submit}
             disabled={disabled}
-            className="gradient-btn-primary w-full py-3.5 text-xs font-extrabold"
+            className="btn-primary w-full py-3 text-xs font-bold uppercase tracking-wider"
           >
-            Run Seven-Stage Clinical Screening
+            Begin 7-Stage Clinical Analysis
           </button>
         </div>
       </div>
@@ -320,14 +381,12 @@ export function IntakePanel({
 }
 
 const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 transition focus:border-emerald-500 focus:bg-white focus:outline-none shadow-inner';
+  'w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none transition';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-bold text-slate-700">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-semibold text-slate-700">{label}</span>
       {children}
     </label>
   );

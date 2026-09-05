@@ -44,23 +44,25 @@ export function QualityCard({ data }: { data: QualityAssessment }) {
         }
       />
 
-      <div className="space-y-5 p-5">
-        <div className="flex items-center gap-5 rounded-lg border border-ink-800 bg-ink-900/50 px-4 py-4">
+      <div className="space-y-4 p-4 sm:p-5">
+        <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
           <div className="shrink-0">
-            <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
-              Composite
+            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+              Quality Score
             </p>
-            <p className="tabular mt-1 text-4xl leading-none font-semibold text-ink-50">
+            <p className="tabular mt-1 text-3xl sm:text-4xl font-extrabold text-slate-900 leading-none">
               {data.overallScore}
-              <span className="text-base font-medium text-ink-500">/100</span>
+              <span className="text-sm font-normal text-slate-400">/100</span>
             </p>
           </div>
-          <p className="text-[12.5px] leading-relaxed text-ink-300">{data.narrative}</p>
+          <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 border-l border-slate-200 pl-4">
+            {data.narrative}
+          </p>
         </div>
 
         <div>
           <SectionLabel>Measured sub-scores</SectionLabel>
-          <div className="mt-3 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          <div className="mt-2.5 grid gap-x-6 gap-y-3.5 sm:grid-cols-2">
             {data.metrics.map((m) => (
               <Meter
                 key={m.key}
@@ -82,11 +84,11 @@ export function QualityCard({ data }: { data: QualityAssessment }) {
         {data.failureReasons.length > 0 ? (
           <div>
             <SectionLabel>Findings that reduced the score</SectionLabel>
-            <ul className="mt-2.5 space-y-1.5">
+            <ul className="mt-2 space-y-1.5">
               {data.failureReasons.slice(0, 6).map((r) => (
-                <li key={r} className="flex gap-2 text-[12px] leading-relaxed text-ink-400">
+                <li key={r} className="flex gap-2 text-xs leading-relaxed text-slate-600">
                   <TriangleAlert
-                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#fab219]"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600"
                     aria-hidden
                   />
                   {r}
@@ -109,16 +111,16 @@ function EnhancementBlock({
   const gain = enhancement.scoreAfter - enhancement.scoreBefore;
 
   return (
-    <div className="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-100">
-          <Sparkles className="h-3.5 w-3.5 text-brand-300" aria-hidden />
+    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+          <Sparkles className="h-3.5 w-3.5 text-emerald-700" aria-hidden />
           Retinal enhancement {enhancement.applied ? 'applied' : 'attempted and rejected'}
         </p>
         <span
           className={cn(
-            'tabular font-mono text-[11px] font-semibold',
-            gain > 0 ? 'text-[#3fce3f]' : 'text-ink-400',
+            'tabular font-mono text-xs font-bold',
+            gain > 0 ? 'text-emerald-700' : 'text-slate-500',
           )}
         >
           {enhancement.scoreBefore} → {enhancement.scoreAfter} ({gain >= 0 ? '+' : ''}
@@ -127,13 +129,13 @@ function EnhancementBlock({
       </div>
 
       {!enhancement.applied ? (
-        <p className="mt-2 text-[11.5px] leading-relaxed text-ink-500">
+        <p className="mt-1.5 text-xs text-slate-500">
           Enhancement did not measurably improve the composite score, so the original
-          capture was kept. Enhancement is only accepted when it demonstrably helps.
+          capture was kept.
         </p>
       ) : null}
 
-      <div className="relative mt-3 overflow-hidden rounded-lg border border-ink-800 bg-black">
+      <div className="relative mt-2.5 overflow-hidden rounded-lg border border-slate-700 bg-black">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={enhancement.imageAfter}
@@ -154,19 +156,19 @@ function EnhancementBlock({
           />
         </div>
         <div
-          className="pointer-events-none absolute inset-y-0 w-px bg-brand-300"
+          className="pointer-events-none absolute inset-y-0 w-0.5 bg-emerald-400 shadow-sm"
           style={{ left: `${split}%` }}
           aria-hidden
         />
-        <span className="pointer-events-none absolute top-2 left-2 rounded bg-ink-950/80 px-1.5 py-0.5 font-mono text-[9.5px] tracking-wide text-ink-300">
+        <span className="pointer-events-none absolute top-2 left-2 rounded bg-slate-900/80 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wide text-slate-200">
           BEFORE
         </span>
-        <span className="pointer-events-none absolute top-2 right-2 rounded bg-ink-950/80 px-1.5 py-0.5 font-mono text-[9.5px] tracking-wide text-brand-300">
+        <span className="pointer-events-none absolute top-2 right-2 rounded bg-emerald-950/80 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wide text-emerald-300">
           AFTER
         </span>
       </div>
 
-      <label className="mt-3 block">
+      <label className="mt-2.5 block">
         <span className="sr-only">Before / after comparison position</span>
         <input
           type="range"
@@ -174,11 +176,11 @@ function EnhancementBlock({
           max={100}
           value={split}
           onChange={(e) => setSplit(Number(e.target.value))}
-          className="w-full accent-[#1aa197]"
+          className="w-full accent-emerald-600"
         />
       </label>
 
-      <div className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <div className="mt-2.5 grid gap-x-6 gap-y-1 sm:grid-cols-2">
         {enhancement.deltas
           .filter((d) => d.after !== d.before)
           .map((d) => (
@@ -188,7 +190,7 @@ function EnhancementBlock({
               value={
                 <span className="tabular font-mono">
                   {d.before} →{' '}
-                  <span className={d.after > d.before ? 'text-[#3fce3f]' : 'text-[#ff9b9b]'}>
+                  <span className={d.after > d.before ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}>
                     {d.after}
                   </span>
                 </span>
@@ -196,14 +198,6 @@ function EnhancementBlock({
             />
           ))}
       </div>
-
-      <ul className="mt-3 space-y-1">
-        {enhancement.operations.map((op) => (
-          <li key={op} className="font-mono text-[10.5px] leading-relaxed text-ink-500">
-            · {op}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -218,7 +212,7 @@ export function StructureCard({ data }: { data: StructureAnalysis }) {
       <PanelHeader
         icon={<Crosshair className="h-4 w-4" aria-hidden />}
         title="Stage 2 · Retinal structure analysis"
-        subtitle="Establishing the frame of reference every later measurement depends on."
+        subtitle="Establishing anatomical landmarks: optic disc, macula, and vessel arcades."
         right={
           <StatusBadge status={data.anatomyComplete ? 'good' : 'warning'} size="md">
             {data.anatomyComplete ? 'Anatomy located' : 'Anatomy incomplete'}
@@ -226,29 +220,29 @@ export function StructureCard({ data }: { data: StructureAnalysis }) {
         }
       />
 
-      <div className="space-y-5 p-5">
-        <p className="text-[12.5px] leading-relaxed text-ink-300">{data.narrative}</p>
+      <div className="space-y-4 p-4 sm:p-5">
+        <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600">{data.narrative}</p>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">
           <StatTile
             label="Optic disc"
             value={data.opticDisc.detected ? `${data.opticDisc.confidence}` : '—'}
             unit={data.opticDisc.detected ? '/100 conf' : undefined}
             status={data.opticDisc.detected ? 'good' : 'warning'}
-            hint={`r ≈ ${(data.opticDisc.radius * 100).toFixed(1)}% of width`}
+            hint={`r ≈ ${(data.opticDisc.radius * 100).toFixed(1)}%`}
           />
           <StatTile
             label="Fovea"
             value={data.fovea.detected ? `${data.fovea.discDiameters}` : '—'}
-            unit={data.fovea.detected ? 'DD from disc' : undefined}
+            unit={data.fovea.detected ? 'DD' : undefined}
             status={data.fovea.detected ? 'good' : 'warning'}
-            hint="Normal range 2.0–3.0 DD"
+            hint="Normal: 2.0–3.0 DD"
           />
           <StatTile
             label="Vessel density"
             value={data.vessels.densityPct}
-            unit="% of retina"
-            hint={`Arcade visibility ${data.vessels.arcadeContinuity}/100`}
+            unit="% retina"
+            hint={`Arcade ${data.vessels.arcadeContinuity}/100`}
           />
           <StatTile
             label="Laterality"
@@ -258,7 +252,7 @@ export function StructureCard({ data }: { data: StructureAnalysis }) {
           />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5 pt-1">
           <DetailRow label="Optic disc" text={data.opticDisc.note} />
           <DetailRow label="Fovea" text={data.fovea.note} />
           <DetailRow label="Vasculature" text={data.vessels.note} />
@@ -290,16 +284,16 @@ function DetailRow({
   status?: 'ok' | 'warn';
 }) {
   return (
-    <div className="grid gap-1 border-l-2 border-ink-800 pl-3 sm:grid-cols-[130px_1fr] sm:gap-3">
+    <div className="grid gap-1 border-l-2 border-slate-200 pl-3 sm:grid-cols-[130px_1fr] sm:gap-3">
       <p
         className={cn(
-          'text-[11px] font-semibold tracking-wide uppercase',
-          status === 'warn' ? 'text-[#fab219]' : status === 'ok' ? 'text-[#3fce3f]' : 'text-ink-500',
+          'text-[10.5px] font-bold tracking-wide uppercase',
+          status === 'warn' ? 'text-amber-800' : status === 'ok' ? 'text-emerald-800' : 'text-slate-500',
         )}
       >
         {label}
       </p>
-      <p className="text-[12px] leading-relaxed text-ink-400">{text}</p>
+      <p className="text-xs leading-relaxed text-slate-600">{text}</p>
     </div>
   );
 }
@@ -325,20 +319,20 @@ export function LesionCard({ data }: { data: LesionAnalysis }) {
         }
       />
 
-      <div className="space-y-5 p-5">
-        <p className="text-[12.5px] leading-relaxed text-ink-300">{data.narrative}</p>
+      <div className="space-y-4 p-4 sm:p-5">
+        <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600">{data.narrative}</p>
 
         {present.length > 0 ? (
           <div>
             <SectionLabel>Lesion inventory</SectionLabel>
-            <div className="mt-3 space-y-3">
+            <div className="mt-2.5 space-y-2.5">
               {present.map((c) => {
                 const spec = LESION_TAXONOMY[c];
                 const share = total ? (data.counts[c] / total) * 100 : 0;
                 return (
                   <div key={c}>
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="flex items-center gap-2 text-[12.5px] text-ink-200">
+                      <span className="flex items-center gap-2 text-xs font-semibold text-slate-800">
                         <span
                           aria-hidden
                           className="h-2.5 w-2.5 shrink-0"
@@ -353,17 +347,17 @@ export function LesionCard({ data }: { data: LesionAnalysis }) {
                         />
                         {spec.label}
                       </span>
-                      <span className="tabular text-[13px] font-semibold text-ink-100">
+                      <span className="tabular text-xs font-bold text-slate-900">
                         {data.counts[c]}
                       </span>
                     </div>
-                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink-800">
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${share}%`, background: spec.colour }}
                       />
                     </div>
-                    <p className="mt-1.5 text-[11px] leading-snug text-ink-500">
+                    <p className="mt-1 text-[10.5px] text-slate-500">
                       {spec.significance}
                     </p>
                   </div>
@@ -372,35 +366,35 @@ export function LesionCard({ data }: { data: LesionAnalysis }) {
             </div>
           </div>
         ) : (
-          <p className="rounded-lg border border-[#0ca30c]/30 bg-[#0ca30c]/8 px-4 py-3 text-[12.5px] leading-relaxed text-ink-300">
-            No lesions were located. On a gradable image this is a meaningful negative — it
-            is the evidence for a Level 0 grade, not an absence of evidence.
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800">
+            No lesions were located. On a gradable image this is a meaningful negative — the
+            primary evidence for a Level 0 grade.
           </p>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">
           <StatTile
-            label="Detector corroboration"
+            label="Corroboration"
             value={data.corroborationScore}
             unit="/100"
             status={scoreStatus(data.corroborationScore)}
-            hint="Model findings vs. classical detection"
+            hint="Model vs. classical"
           />
           <StatTile
             label="CV candidates"
             value={`${data.cvCandidates.darkBlobs}/${data.cvCandidates.brightBlobs}`}
-            hint="Dark / bright blob objects"
+            hint="Dark / bright blobs"
           />
           <StatTile
-            label="Red-lesion density"
+            label="Red density"
             value={data.densityPerDiscArea}
-            unit="per disc area"
-            hint="Microaneurysms + haemorrhages"
+            unit="/DA"
+            hint="MA + haemorrhages"
           />
           <StatTile
-            label="Quadrants involved"
+            label="Quadrants"
             value={`${Object.values(data.quadrantBurden).filter((v) => v > 0).length}/4`}
-            hint="Feeds the 4-2-1 severe-NPDR rule"
+            hint="4-2-1 rule"
             status={
               Object.values(data.quadrantBurden).filter((v) => v > 0).length >= 4
                 ? 'serious'
@@ -411,34 +405,34 @@ export function LesionCard({ data }: { data: LesionAnalysis }) {
 
         <div>
           <SectionLabel>Quadrant distribution of red lesions</SectionLabel>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {Object.entries(data.quadrantBurden).map(([q, count]) => (
               <Chip key={q}>
-                {quadrantLabel(q)} <span className="tabular text-ink-100">{count}</span>
+                {quadrantLabel(q)} <span className="tabular font-bold text-slate-900">{count}</span>
               </Chip>
             ))}
           </div>
-          <p className="mt-2.5 text-[11.5px] leading-relaxed text-ink-500">
+          <p className="mt-2 text-xs text-slate-500">
             {data.fourTwoOne.explanation}
           </p>
         </div>
 
         <div
           className={cn(
-            'rounded-lg border px-4 py-3',
+            'rounded-lg border px-3.5 py-2.5 text-xs',
             data.neovascularisation.suspected
-              ? 'border-[#d03b3b]/45 bg-[#d03b3b]/10'
-              : 'border-ink-800 bg-ink-900/40',
+              ? 'border-rose-300 bg-rose-50 text-rose-800'
+              : 'border-slate-200 bg-slate-50 text-slate-700',
           )}
         >
-          <p className="flex items-center gap-2 text-[12px] font-semibold text-ink-100">
+          <p className="flex items-center gap-1.5 font-bold">
             <Layers className="h-3.5 w-3.5" aria-hidden />
             Neovascularisation:{' '}
             {data.neovascularisation.suspected
               ? `suspected (${data.neovascularisation.confidence}% confidence)`
               : 'not identified'}
           </p>
-          <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-400">
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
             {data.neovascularisation.rationale}
           </p>
         </div>
@@ -454,27 +448,27 @@ function LesionTable({ lesions }: { lesions: LesionAnalysis['lesions'] }) {
   const rows = expanded ? lesions : lesions.slice(0, 8);
 
   return (
-    <div>
+    <div className="border-t border-slate-100 pt-3">
       <SectionLabel>Located findings</SectionLabel>
-      <div className="mt-2.5 overflow-x-auto">
-        <table className="w-full min-w-[520px] text-left">
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full min-w-[500px] text-left text-xs">
           <thead>
-            <tr className="border-b border-ink-800">
+            <tr className="border-b border-slate-200 text-slate-500">
               {['ID', 'Finding', 'Position', 'Quadrant', 'Conf.', 'Source'].map((h) => (
                 <th
                   key={h}
-                  className="pb-2 text-[10px] font-semibold tracking-[0.1em] text-ink-500 uppercase"
+                  className="pb-2 text-[10px] font-bold tracking-wider uppercase"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {rows.map((l) => (
-              <tr key={l.id} className="border-b border-ink-850/70">
-                <td className="tabular py-2 font-mono text-[11px] text-ink-500">{l.id}</td>
-                <td className="py-2 text-[11.5px] text-ink-200">
+              <tr key={l.id} className="hover:bg-slate-50 transition">
+                <td className="tabular py-1.5 font-mono text-[11px] text-slate-500">{l.id}</td>
+                <td className="py-1.5 text-slate-800">
                   <span className="flex items-center gap-1.5">
                     <span
                       aria-hidden
@@ -484,22 +478,22 @@ function LesionTable({ lesions }: { lesions: LesionAnalysis['lesions'] }) {
                     {LESION_TAXONOMY[l.lesionClass].label}
                   </span>
                 </td>
-                <td className="tabular py-2 font-mono text-[11px] text-ink-500">
+                <td className="tabular py-1.5 font-mono text-[11px] text-slate-500">
                   {l.centre.x.toFixed(2)}, {l.centre.y.toFixed(2)}
                 </td>
-                <td className="py-2 text-[11px] text-ink-400">{quadrantLabel(l.quadrant)}</td>
-                <td className="tabular py-2 font-mono text-[11px] text-ink-300">
+                <td className="py-1.5 text-slate-600">{quadrantLabel(l.quadrant)}</td>
+                <td className="tabular py-1.5 font-mono text-slate-800">
                   {l.confidence}%
                 </td>
-                <td className="py-2 text-[10.5px]">
+                <td className="py-1.5">
                   <span
                     className={cn(
-                      'rounded px-1.5 py-0.5 font-medium',
+                      'rounded px-1.5 py-0.5 text-[10px] font-semibold',
                       l.source === 'both'
-                        ? 'bg-[#0ca30c]/15 text-[#3fce3f]'
+                        ? 'bg-emerald-100 text-emerald-800'
                         : l.source === 'cv'
-                          ? 'bg-ink-800 text-ink-300'
-                          : 'bg-[#fab219]/12 text-[#fab219]',
+                          ? 'bg-slate-100 text-slate-700'
+                          : 'bg-amber-100 text-amber-800',
                     )}
                   >
                     {l.source === 'both' ? 'corroborated' : l.source === 'cv' ? 'CV' : 'model'}
@@ -514,7 +508,7 @@ function LesionTable({ lesions }: { lesions: LesionAnalysis['lesions'] }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-3 text-[11.5px] font-semibold text-brand-300 hover:text-brand-200"
+          className="mt-2.5 text-xs font-bold text-emerald-700 hover:text-emerald-800"
         >
           {expanded ? 'Show fewer' : `Show all ${lesions.length} findings`}
         </button>

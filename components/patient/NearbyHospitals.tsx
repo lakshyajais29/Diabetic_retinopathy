@@ -12,6 +12,7 @@ import {
   Stethoscope,
   RefreshCw,
 } from 'lucide-react';
+import { cn } from '@/lib/ui';
 
 export interface Hospital {
   id: string;
@@ -120,81 +121,92 @@ export function NearbyHospitals() {
   }, [search, selectedType]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-5">
+      {/* Header Title */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
               <Building2 className="h-4 w-4" />
             </span>
             <h2 className="text-lg font-bold text-slate-900 font-display">
-              Find Nearby Government Eye Hospitals & Ayushman Centers
+              Government Eye Hospitals & Ayushman PM-JAY Centers
             </h2>
           </div>
-          <p className="mt-1 text-xs text-slate-600">
-            Empaneled vision health centers for referral follow-up, laser treatment, and free screening under PM-JAY.
+          <p className="mt-1 text-xs text-slate-500">
+            Empaneled vision health facilities for referral follow-up, retinal laser therapy, and free treatment under Ayushman Bharat.
           </p>
         </div>
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="medical-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3.5">
+      <div className="clinical-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3.5">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Enter Pincode, District or Hospital Name..."
+            placeholder="Enter Pincode, District, or Hospital Name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none transition"
           />
         </div>
-        <div className="flex items-center gap-2">
-          {loading && <RefreshCw className="h-4 w-4 animate-spin text-emerald-600 mr-1" />}
-          <button
-            onClick={() => setSelectedType('all')}
-            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-              selectedType === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            All Hospitals
-          </button>
-          <button
-            onClick={() => setSelectedType('ayushman')}
-            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-              selectedType === 'ayushman' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Ayushman PM-JAY
-          </button>
-          <button
-            onClick={() => setSelectedType('retina')}
-            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-              selectedType === 'retina' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Retina Specialists
-          </button>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600 mr-1 shrink-0" />}
+          <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5">
+            <button
+              onClick={() => setSelectedType('all')}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-semibold transition',
+                selectedType === 'all'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
+            >
+              All Centers
+            </button>
+            <button
+              onClick={() => setSelectedType('ayushman')}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-semibold transition',
+                selectedType === 'ayushman'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
+            >
+              Ayushman PM-JAY
+            </button>
+            <button
+              onClick={() => setSelectedType('retina')}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-semibold transition',
+                selectedType === 'retina'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900',
+              )}
+            >
+              Retina Specialists
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Hospital Cards Grid */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3.5 sm:grid-cols-2">
         {hospitals.map((h) => (
-          <div key={h.id} className="medical-card p-5 space-y-3.5">
+          <div key={h.id} className="clinical-card p-4 sm:p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="badge-info text-[10.5px] font-bold">{h.type}</span>
-                <h3 className="mt-1.5 text-sm font-bold text-slate-900 leading-snug">
+                <span className="inline-block rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10.5px] font-bold text-slate-700 uppercase">
+                  {h.type}
+                </span>
+                <h3 className="mt-1 text-sm font-bold text-slate-900 leading-snug">
                   {h.name}
                 </h3>
               </div>
-              <div className="text-right shrink-0">
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-extrabold text-emerald-800">
-                  {h.distance}
-                </span>
-              </div>
+              <span className="shrink-0 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                {h.distance}
+              </span>
             </div>
 
             <div className="space-y-1.5 text-xs text-slate-600">
@@ -208,38 +220,38 @@ export function NearbyHospitals() {
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                <span className="font-semibold text-slate-900">{h.phone}</span>
+                <span className="font-semibold text-slate-800">{h.phone}</span>
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
               {h.ayushmanEmpaneled && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  Free Treatment (PM-JAY)
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
+                  Free Laser / PM-JAY Empaneled
                 </span>
               )}
               {h.retinaSpecialistAvailable && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700">
-                  <Stethoscope className="h-3.5 w-3.5 text-sky-600" />
-                  Retina Specialist On-Duty
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                  <Stethoscope className="h-3.5 w-3.5 text-sky-700" />
+                  Specialist On-Duty
                 </span>
               )}
             </div>
 
-            <div className="pt-2 flex items-center justify-between">
+            <div className="pt-2 flex items-center justify-between gap-2">
               <a
                 href={`tel:${h.phone}`}
-                className="btn-secondary py-1.5 px-3 text-xs"
+                className="btn-secondary py-1.5 px-3 text-xs flex-1 text-center"
               >
                 <Phone className="h-3.5 w-3.5" />
-                Call Hospital
+                Call Facility
               </a>
               <a
                 href={`https://maps.google.com/?q=${encodeURIComponent(h.name + ' ' + h.address)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-primary py-1.5 px-3 text-xs"
+                className="btn-primary py-1.5 px-3 text-xs flex-1 text-center"
               >
                 <Navigation className="h-3.5 w-3.5" />
                 Get Directions

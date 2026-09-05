@@ -10,6 +10,10 @@ import {
   RotateCcw,
   Camera,
   Workflow,
+  Sparkles,
+  Volume2,
+  VolumeX,
+  ArrowRight,
 } from 'lucide-react';
 import type { LesionClass, PatientContext, StageId } from '@/lib/pipeline/types';
 import { LESION_CLASSES } from '@/lib/pipeline/constants';
@@ -29,20 +33,21 @@ import {
   GradingCard,
 } from '@/components/screening/cards/DecisionCards';
 import { ReportView } from '@/components/screening/ReportView';
-import { Panel, StatusBadge } from '@/components/ui/primitives';
+import { StatusBadge } from '@/components/ui/primitives';
 import { saveScreeningRecord } from '@/lib/client/screeningStore';
 import { speakQualityResult, speakClinicalVerdict } from '@/lib/client/voiceAssistant';
 import { cn } from '@/lib/ui';
-import { Volume2, VolumeX } from 'lucide-react';
 
 export function ScreeningWorkspace() {
   const { state, start, reset } = useScreeningRun();
   const [view, setView] = useState<'pipeline' | 'report'>('pipeline');
+  const [mobileTab, setMobileTab] = useState<'image' | 'stages'>('stages');
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [layers, setLayers] = useState<ViewerLayers>({
     anatomy: true,
     lesions: true,
     heatmap: false,
+    redFree: false,
   });
   const [visibleClasses, setVisibleClasses] = useState<Set<LesionClass>>(
     () => new Set(LESION_CLASSES),
@@ -57,6 +62,7 @@ export function ScreeningWorkspace() {
     (file: File, ctx: PatientContext) => {
       setPatient(ctx);
       setView('pipeline');
+      setMobileTab('stages');
       setRecaptureHint(null);
       void start(file, ctx);
     },
@@ -67,7 +73,8 @@ export function ScreeningWorkspace() {
     (hint?: string) => {
       reset();
       setView('pipeline');
-      setLayers({ anatomy: true, lesions: true, heatmap: false });
+      setMobileTab('stages');
+      setLayers({ anatomy: true, lesions: true, heatmap: false, redFree: false });
       setVisibleClasses(new Set(LESION_CLASSES));
       setRecaptureHint(hint ?? null);
     },
@@ -117,15 +124,10 @@ export function ScreeningWorkspace() {
     }
   }, [state.report, state.quality, state.grading, state.confidence, patient]);
 
-  /* Turn the heatmap on automatically the moment the explainability stage
-     lands — that is the stage where the operator is meant to look at it. */
   useEffect(() => {
     if (state.explainability) setLayers((l) => ({ ...l, heatmap: true }));
   }, [state.explainability]);
 
-
-
-  /* Follow the run as new stage cards arrive. */
   const completedCount = useMemo(
     () => Object.values(state.stages).filter((s) => s.status === 'complete').length,
     [state.stages],
@@ -134,7 +136,6 @@ export function ScreeningWorkspace() {
     if (state.phase !== 'running' || completedCount === 0) return;
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [completedCount, state.phase]);
-
 
   const toggleClass = useCallback((c: LesionClass) => {
     setVisibleClasses((prev) => {
@@ -153,10 +154,10 @@ export function ScreeningWorkspace() {
     return (
       <>
         {recaptureHint ? (
-          <div className="mx-auto max-w-6xl px-5 pt-6">
-            <div className="flex items-start gap-3 rounded-xl border border-[#fab219]/40 bg-[#fab219]/8 px-4 py-3">
-              <Camera className="mt-0.5 h-4 w-4 shrink-0 text-[#fab219]" aria-hidden />
-              <p className="text-[12.5px] leading-relaxed text-ink-200">{recaptureHint}</p>
+          <div className="mx-auto max-w-5xl px-4 pt-4">
+            <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+              <Camera className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
+              <p className="leading-relaxed">{recaptureHint}</p>
             </div>
           </div>
         ) : null}
@@ -175,26 +176,30 @@ export function ScreeningWorkspace() {
     .map(([id]) => id)[0];
 
   return (
-    <div className="min-h-screen">
-      {/* ---- Run header ---- */}
-      <div className="print-hide sticky top-0 z-30 border-b border-ink-850 bg-canvas/95 backdrop-blur">
-        <div className="mx-auto max-w-[1500px] px-5 py-3.5">
+    <div className="min-h-screen bg-slate-50">
+      {/* ================================================================== */}
+      {/* Sticky Workspace Top Telemetry Bar                                 */}
+      {/* ================================================================== */}
+      <div className="print-hide sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-xs backdrop-blur-md">
+        <div className="mx-auto max-w-[1500px]">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-              <span className="font-mono text-[11px] tracking-wide text-ink-500 uppercase">
-                {patient?.patientId ? `Patient ${patient.patientId}` : 'Unidentified encounter'}
+            {/* Encounter Meta */}
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="font-mono text-xs font-bold text-slate-800 uppercase">
+                {patient?.patientId ? `Patient ${patient.patientId}` : 'Encounter in Progress'}
               </span>
               {patient?.phc ? (
-                <span className="truncate text-[11.5px] text-ink-500">· {patient.phc}</span>
+                <span className="hidden sm:inline text-xs text-slate-500">· {patient.phc}</span>
               ) : null}
               {state.grading && state.confidence ? (
                 <GradeSummaryStrip grading={state.grading} confidence={state.confidence} />
               ) : null}
             </div>
 
+            {/* View & Action Controls */}
             <div className="flex items-center gap-2">
               <div
-                className="flex rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-2xs"
+                className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5"
                 role="tablist"
                 aria-label="Workspace view"
               >
@@ -203,7 +208,7 @@ export function ScreeningWorkspace() {
                   onClick={() => setView('pipeline')}
                   icon={<Workflow className="h-3.5 w-3.5" aria-hidden />}
                 >
-                  Pipeline
+                  Analysis
                 </ViewTab>
                 <ViewTab
                   active={view === 'report'}
@@ -214,34 +219,36 @@ export function ScreeningWorkspace() {
                   Report
                 </ViewTab>
               </div>
+
               <button
                 type="button"
                 onClick={() => setVoiceEnabled((v) => !v)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition',
+                  'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition',
                   voiceEnabled
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 bg-white text-slate-400',
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-slate-200 bg-white text-slate-500',
                 )}
                 title="Toggle Screener Voice Assistant"
               >
                 {voiceEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-                Voice {voiceEnabled ? 'On' : 'Off'}
+                <span className="hidden sm:inline">{voiceEnabled ? 'Voice On' : 'Voice Off'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleReset()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="btn-secondary py-1.5 px-2.5 text-xs font-semibold"
+                title="Start new screening encounter"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-                New screening
+                <span className="hidden sm:inline">New Screening</span>
               </button>
-
             </div>
           </div>
 
-          <div className="mt-3">
+          {/* 7-Stage Progress Rail */}
+          <div className="mt-2.5">
             <StageRail
               stages={state.stages}
               halted={state.phase === 'halted'}
@@ -249,9 +256,42 @@ export function ScreeningWorkspace() {
               onSelect={scrollToStage}
             />
           </div>
+
+          {/* Mobile Tab Switcher (Image vs Diagnostic Findings) */}
+          {view === 'pipeline' && (
+            <div className="mt-2.5 flex rounded-lg border border-slate-200 bg-slate-100 p-1 xl:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileTab('image')}
+                className={cn(
+                  'flex-1 rounded-md py-1.5 text-xs font-bold text-center transition',
+                  mobileTab === 'image'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-600',
+                )}
+              >
+                Retinal Canvas
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileTab('stages')}
+                className={cn(
+                  'flex-1 rounded-md py-1.5 text-xs font-bold text-center transition',
+                  mobileTab === 'stages'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-600',
+                )}
+              >
+                Clinical Findings ({completedCount}/7)
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* ================================================================== */}
+      {/* Workspace Body: Report View vs Dual Column Workspace               */}
+      {/* ================================================================== */}
       {view === 'report' && state.report ? (
         <ReportView
           report={state.report}
@@ -260,11 +300,16 @@ export function ScreeningWorkspace() {
           lesions={state.lesions}
         />
       ) : (
-        <div className="mx-auto grid max-w-[1500px] gap-5 px-5 py-6 xl:grid-cols-[minmax(380px,0.85fr)_1.15fr]">
-          {/* ---- Reading canvas ---- */}
-          <div className="xl:sticky xl:top-[168px] xl:self-start">
-            <Panel className="overflow-hidden">
-              <div className="p-3">
+        <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[minmax(380px,0.85fr)_1.15fr]">
+          {/* ---- Left Column: PACS Retinal Image Viewer ---- */}
+          <div
+            className={cn(
+              'xl:sticky xl:top-[160px] xl:self-start',
+              mobileTab === 'stages' && 'hidden xl:block',
+            )}
+          >
+            <div className="clinical-card overflow-hidden">
+              <div className="p-3 bg-slate-900 rounded-t-xl">
                 {displayImage ? (
                   <ImageViewer
                     src={displayImage}
@@ -278,62 +323,67 @@ export function ScreeningWorkspace() {
                     scanning={state.phase === 'running'}
                   />
                 ) : (
-                  <div className="grid aspect-square place-items-center rounded-xl border border-ink-800 bg-ink-950">
-                    <p className="text-[12px] text-ink-500">Loading capture…</p>
+                  <div className="grid aspect-square place-items-center rounded-lg border border-slate-800 bg-[#070b14]">
+                    <p className="text-xs text-slate-500">Loading capture…</p>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-3.5 border-t border-ink-850 px-4 py-4">
-                <div className="flex flex-wrap gap-1.5">
-                  <LayerToggle
-                    active={layers.anatomy}
-                    disabled={!state.structures}
-                    onClick={() => setLayers((l) => ({ ...l, anatomy: !l.anatomy }))}
-                    icon={<Crosshair className="h-3.5 w-3.5" aria-hidden />}
-                  >
-                    Anatomy
-                  </LayerToggle>
-                  <LayerToggle
-                    active={layers.lesions}
-                    disabled={!state.lesions}
-                    onClick={() => setLayers((l) => ({ ...l, lesions: !l.lesions }))}
-                    icon={<Eye className="h-3.5 w-3.5" aria-hidden />}
-                  >
-                    Lesions
-                  </LayerToggle>
-                  <LayerToggle
-                    active={layers.heatmap}
-                    disabled={!state.explainability}
-                    onClick={() => setLayers((l) => ({ ...l, heatmap: !l.heatmap }))}
-                    icon={<Flame className="h-3.5 w-3.5" aria-hidden />}
-                  >
-                    Attention
-                  </LayerToggle>
-                  <LayerToggle
-                    active={!!layers.redFree}
-                    onClick={() => setLayers((l) => ({ ...l, redFree: !l.redFree }))}
-                    icon={<Eye className="h-3.5 w-3.5 text-emerald-400" aria-hidden />}
-                  >
-                    Red-Free Filter
-                  </LayerToggle>
-                  {state.images.enhanced ? (
+              {/* Viewer Layer Controls */}
+              <div className="space-y-3.5 p-4 bg-white">
+                <div>
+                  <p className="mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                    Optical & Diagnostic Layers
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
                     <LayerToggle
-                      active={showEnhanced}
-                      onClick={() => setShowEnhanced((v) => !v)}
-                      icon={<Camera className="h-3.5 w-3.5" aria-hidden />}
+                      active={layers.anatomy}
+                      disabled={!state.structures}
+                      onClick={() => setLayers((l) => ({ ...l, anatomy: !l.anatomy }))}
+                      icon={<Crosshair className="h-3.5 w-3.5" aria-hidden />}
                     >
-                      Enhanced
+                      Anatomy
                     </LayerToggle>
-                  ) : null}
-
+                    <LayerToggle
+                      active={layers.lesions}
+                      disabled={!state.lesions}
+                      onClick={() => setLayers((l) => ({ ...l, lesions: !l.lesions }))}
+                      icon={<Eye className="h-3.5 w-3.5" aria-hidden />}
+                    >
+                      Lesions
+                    </LayerToggle>
+                    <LayerToggle
+                      active={layers.heatmap}
+                      disabled={!state.explainability}
+                      onClick={() => setLayers((l) => ({ ...l, heatmap: !l.heatmap }))}
+                      icon={<Flame className="h-3.5 w-3.5" aria-hidden />}
+                    >
+                      Attention
+                    </LayerToggle>
+                    <LayerToggle
+                      active={!!layers.redFree}
+                      onClick={() => setLayers((l) => ({ ...l, redFree: !l.redFree }))}
+                      icon={<Eye className="h-3.5 w-3.5 text-emerald-600" aria-hidden />}
+                    >
+                      Red-Free (Green Channel)
+                    </LayerToggle>
+                    {state.images.enhanced ? (
+                      <LayerToggle
+                        active={showEnhanced}
+                        onClick={() => setShowEnhanced((v) => !v)}
+                        icon={<Camera className="h-3.5 w-3.5" aria-hidden />}
+                      >
+                        Enhanced
+                      </LayerToggle>
+                    ) : null}
+                  </div>
                 </div>
 
                 {layers.heatmap && state.explainability ? (
-                  <label className="block">
-                    <span className="mb-1.5 flex items-center justify-between text-[11px] text-ink-400">
-                      Attention opacity
-                      <span className="tabular font-mono text-ink-500">
+                  <label className="block rounded-lg bg-slate-50 border border-slate-200 p-2.5">
+                    <span className="mb-1.5 flex items-center justify-between text-xs text-slate-600 font-medium">
+                      Attention Opacity
+                      <span className="tabular font-mono text-slate-900 font-bold">
                         {Math.round(heatmapOpacity * 100)}%
                       </span>
                     </span>
@@ -343,15 +393,15 @@ export function ScreeningWorkspace() {
                       max={100}
                       value={Math.round(heatmapOpacity * 100)}
                       onChange={(e) => setHeatmapOpacity(Number(e.target.value) / 100)}
-                      className="w-full accent-[#1aa197]"
+                      className="w-full accent-emerald-600"
                     />
                   </label>
                 ) : null}
 
                 {state.lesions ? (
-                  <div>
-                    <p className="mb-2 text-[10.5px] font-semibold tracking-[0.1em] text-ink-500 uppercase">
-                      Finding layers
+                  <div className="border-t border-slate-100 pt-3">
+                    <p className="mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                      Filter Findings by Class
                     </p>
                     <LesionLegend
                       counts={state.lesions.counts}
@@ -361,28 +411,29 @@ export function ScreeningWorkspace() {
                   </div>
                 ) : null}
 
-                <p className="border-t border-ink-850 pt-3 text-[10.5px] leading-relaxed text-ink-500">
-                  Dashed markers are model-only findings; solid markers were corroborated by
-                  independent classical detection. Each lesion class has its own shape as
-                  well as its own colour.
+                <p className="border-t border-slate-100 pt-2.5 text-[10.5px] leading-relaxed text-slate-500">
+                  Solid markers indicate classical detector corroboration; dashed circles denote vision model detections.
                 </p>
               </div>
-            </Panel>
+            </div>
           </div>
 
-          {/* ---- Stage output stream ---- */}
-          <div className="min-w-0 space-y-5">
+          {/* ---- Right Column: Live Clinical Stages Stream ---- */}
+          <div
+            className={cn(
+              'min-w-0 space-y-4',
+              mobileTab === 'image' && 'hidden xl:block',
+            )}
+          >
             {state.error ? (
               <div
                 role="alert"
-                className="flex items-start gap-3 rounded-xl border border-[#d03b3b]/45 bg-[#d03b3b]/10 px-4 py-3.5"
+                className="flex items-start gap-3 rounded-xl border border-rose-300 bg-rose-50 p-4"
               >
-                <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#ff8f8f]" aria-hidden />
+                <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden />
                 <div>
-                  <p className="text-[13px] font-semibold text-[#ffb3b3]">
-                    The screening run failed
-                  </p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-ink-300">{state.error}</p>
+                  <p className="text-xs font-bold text-rose-900">The screening run failed</p>
+                  <p className="mt-0.5 text-xs text-rose-700">{state.error}</p>
                 </div>
               </div>
             ) : null}
@@ -392,7 +443,7 @@ export function ScreeningWorkspace() {
                 <QualityCard data={state.quality} />
               </div>
             ) : (
-              <PendingCard label="Assessing image quality" />
+              <PendingCard label="Assessing image quality & sharpness" />
             )}
 
             {state.phase === 'halted' && state.halted ? (
@@ -401,7 +452,7 @@ export function ScreeningWorkspace() {
                 guidance={state.halted.guidance}
                 onRecapture={() =>
                   handleReset(
-                    'Recapture requested. Re-take the photograph following the guidance from the rejected capture, then upload it here. In the field this is the same operator, same patient, one minute later.',
+                    'Recapture requested. Re-take the photograph following the guidance from the rejected capture, then upload it here.',
                   )
                 }
               />
@@ -412,7 +463,7 @@ export function ScreeningWorkspace() {
                 <StructureCard data={state.structures} />
               </div>
             ) : state.phase === 'running' && state.quality ? (
-              <PendingCard label="Locating retinal anatomy" />
+              <PendingCard label="Locating anatomical landmarks (disc, fovea)" />
             ) : null}
 
             {state.lesions ? (
@@ -420,7 +471,7 @@ export function ScreeningWorkspace() {
                 <LesionCard data={state.lesions} />
               </div>
             ) : state.phase === 'running' && state.structures ? (
-              <PendingCard label="Detecting lesions" />
+              <PendingCard label="Detecting microaneurysms and lesions" />
             ) : null}
 
             {state.grading ? (
@@ -428,7 +479,7 @@ export function ScreeningWorkspace() {
                 <GradingCard data={state.grading} />
               </div>
             ) : state.phase === 'running' && state.lesions ? (
-              <PendingCard label="Grading severity" />
+              <PendingCard label="Computing ICDR severity grading" />
             ) : null}
 
             {state.explainability ? (
@@ -446,25 +497,26 @@ export function ScreeningWorkspace() {
             {state.report ? (
               <div
                 id="stage-report"
-                className="animate-fade-up rounded-xl border border-brand-600/35 bg-brand-950/30 px-5 py-5"
+                className="clinical-card border-emerald-300 bg-emerald-50/50 p-5 space-y-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-[13px] font-semibold text-ink-50">
-                      Stage 7 · Doctor-ready report assembled
-                    </p>
-                    <p className="mt-1 text-[12px] text-ink-400">
-                      Report {state.report.reportId} — grade, evidence, recommendation and the
-                      full processing audit trail.
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Stage 7 · Doctor-Ready Clinical Report Assembled
+                    </span>
+                    <p className="mt-0.5 text-xs text-slate-700">
+                      Report {state.report.reportId} generated with complete diagnostic audit trail.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setView('report')}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-[12.5px] font-semibold text-white transition hover:bg-brand-500"
+                    className="btn-primary py-2.5 px-4 text-xs font-bold"
                   >
                     <FileText className="h-3.5 w-3.5" aria-hidden />
-                    Open report
+                    View & Print Report
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -477,8 +529,6 @@ export function ScreeningWorkspace() {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
 
 function ViewTab({
   active,
@@ -501,10 +551,10 @@ function ViewTab({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-bold transition',
+        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition',
         active
-          ? 'bg-white text-emerald-800 shadow-xs border border-slate-200/80'
-          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50',
+          ? 'bg-white text-emerald-800 shadow-xs border border-slate-200'
+          : 'text-slate-600 hover:text-slate-900',
         disabled && 'cursor-not-allowed opacity-40 hover:text-slate-500',
       )}
     >
@@ -534,10 +584,10 @@ function LayerToggle({
       disabled={disabled}
       aria-pressed={active}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11.5px] font-medium transition',
+        'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition',
         active
-          ? 'border-brand-500/50 bg-brand-600/15 text-brand-200'
-          : 'border-ink-800 bg-ink-950 text-ink-400 hover:border-ink-600',
+          ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold shadow-xs'
+          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
         disabled && 'cursor-not-allowed opacity-35',
       )}
     >
@@ -549,9 +599,9 @@ function LayerToggle({
 
 function PendingCard({ label }: { label: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-ink-800 bg-ink-950/30 px-5 py-8">
-      <p className="flex items-center gap-2.5 text-[12.5px] text-ink-500">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400" aria-hidden />
+    <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center">
+      <p className="flex items-center justify-center gap-2 text-xs font-medium text-slate-500">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
         {label}…
       </p>
     </div>
@@ -566,49 +616,45 @@ function HaltedCard({
   reason: string;
   guidance: string[];
   onRecapture: () => void;
-}) {
+  }) {
   return (
-    <Panel className="animate-fade-up border-[#d03b3b]/45">
-      <div className="p-5">
-        <StatusBadge status="critical" size="lg">
-          Pipeline halted — image rejected
-        </StatusBadge>
+    <div className="rounded-xl border border-rose-300 bg-rose-50/60 p-5 space-y-4">
+      <StatusBadge status="critical" size="lg">
+        Pipeline Halted · Image Recapture Required
+      </StatusBadge>
 
-        <p className="mt-4 text-[13px] leading-relaxed text-ink-200">{reason}</p>
+      <p className="text-xs sm:text-[13px] font-semibold text-rose-950">{reason}</p>
 
-        <p className="mt-4 text-[12px] leading-relaxed text-ink-400">
-          The remaining six stages did not run. Grading an ungradeable photograph would
-          produce a confident-looking result with nothing behind it, which is the most
-          dangerous failure mode a screening tool has. Recapture is the correct action.
-        </p>
+      <p className="text-xs text-rose-800 leading-relaxed">
+        Grading an ungradable photograph would risk producing false reassurance. For patient safety, downstream stages were halted and recapture has been requested.
+      </p>
 
-        {guidance.length > 0 ? (
-          <div className="mt-5">
-            <p className="text-[11px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
-              Recapture guidance for the operator
-            </p>
-            <ol className="mt-2.5 space-y-2">
-              {guidance.map((g, i) => (
-                <li key={g} className="flex gap-3 text-[12px] leading-relaxed text-ink-300">
-                  <span className="tabular mt-px font-mono text-[11px] font-semibold text-[#fab219]">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  {g}
-                </li>
-              ))}
-            </ol>
-          </div>
-        ) : null}
+      {guidance.length > 0 ? (
+        <div className="rounded-lg bg-white border border-rose-200 p-3.5">
+          <p className="text-[10.5px] font-bold tracking-wider text-rose-800 uppercase">
+            Recapture Guidance for Screener:
+          </p>
+          <ol className="mt-2 space-y-1.5">
+            {guidance.map((g, i) => (
+              <li key={g} className="flex gap-2 text-xs text-slate-700">
+                <span className="tabular font-mono text-xs font-bold text-rose-700">
+                  {i + 1}.
+                </span>
+                {g}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
 
-        <button
-          type="button"
-          onClick={onRecapture}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#fab219] px-4 py-2.5 text-[12.5px] font-semibold text-ink-950 transition hover:bg-[#ffc340]"
-        >
-          <Camera className="h-3.5 w-3.5" aria-hidden />
-          Simulate recapture
-        </button>
-      </div>
-    </Panel>
+      <button
+        type="button"
+        onClick={onRecapture}
+        className="btn-primary bg-rose-700 hover:bg-rose-800 border-rose-800 py-2.5 px-4 text-xs font-bold"
+      >
+        <Camera className="h-3.5 w-3.5" aria-hidden />
+        Retake Fundus Photograph Now
+      </button>
+    </div>
   );
 }

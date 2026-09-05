@@ -10,44 +10,45 @@ export type StatusRole = 'good' | 'warning' | 'serious' | 'critical' | 'neutral'
 /**
  * Status roles are the only place colour carries state, and every consumer of
  * this map is required to render the accompanying icon and text label.
+ * High-contrast, accessible colors for clinical daylight readability.
  */
 export const STATUS_STYLES: Record<
   StatusRole,
   { text: string; bg: string; border: string; dot: string; var: string }
 > = {
   good: {
-    text: 'text-[#3fce3f]',
-    bg: 'bg-[#0ca30c]/12',
-    border: 'border-[#0ca30c]/40',
-    dot: 'bg-[#0ca30c]',
+    text: 'text-emerald-800',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    dot: 'bg-emerald-600',
     var: 'var(--status-good)',
   },
   warning: {
-    text: 'text-[#fab219]',
-    bg: 'bg-[#fab219]/12',
-    border: 'border-[#fab219]/40',
-    dot: 'bg-[#fab219]',
+    text: 'text-amber-900',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    dot: 'bg-amber-600',
     var: 'var(--status-warning)',
   },
   serious: {
-    text: 'text-[#ec835a]',
-    bg: 'bg-[#ec835a]/12',
-    border: 'border-[#ec835a]/40',
-    dot: 'bg-[#ec835a]',
+    text: 'text-orange-950',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    dot: 'bg-orange-600',
     var: 'var(--status-serious)',
   },
   critical: {
-    text: 'text-[#ff6b6b]',
-    bg: 'bg-[#d03b3b]/14',
-    border: 'border-[#d03b3b]/45',
-    dot: 'bg-[#d03b3b]',
+    text: 'text-rose-900',
+    bg: 'bg-rose-50',
+    border: 'border-rose-200',
+    dot: 'bg-rose-600',
     var: 'var(--status-critical)',
   },
   neutral: {
-    text: 'text-ink-300',
-    bg: 'bg-ink-800/60',
-    border: 'border-ink-700',
-    dot: 'bg-ink-500',
+    text: 'text-slate-700',
+    bg: 'bg-slate-100',
+    border: 'border-slate-200',
+    dot: 'bg-slate-500',
     var: 'var(--color-ink-500)',
   },
 };
