@@ -21,7 +21,7 @@ export interface ScreeningRecord {
 
 const STORAGE_KEY = 'retinasetu_screening_history';
 
-/** Sample initial data so the Doctor Dashboard is pre-populated for presentations. */
+/** Initial fallback data for presentation & offline initialization */
 const INITIAL_DEMO_RECORDS: ScreeningRecord[] = [
   {
     id: 'rec-101',
@@ -111,11 +111,37 @@ export function getScreeningHistory(): ScreeningRecord[] {
   }
 }
 
+export async function fetchScreeningHistoryAsync(): Promise<ScreeningRecord[]> {
+  try {
+    const res = await fetch('/api/screening');
+    if (res.ok) {
+      const payload = await res.json();
+      if (payload.data && Array.isArray(payload.data) && payload.data.length > 0) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.data));
+        }
+        return payload.data;
+      }
+    }
+  } catch (err) {
+    console.warn('API fetch failed, returning cached local screening records', err);
+  }
+  return getScreeningHistory();
+}
+
 export function saveScreeningRecord(record: ScreeningRecord): ScreeningRecord[] {
   if (typeof window === 'undefined') return [];
   const current = getScreeningHistory();
   const updated = [record, ...current.filter((r) => r.id !== record.id)];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+  // Sync to API asynchronously
+  fetch('/api/screening', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  }).catch(() => {});
+
   return updated;
 }
 
@@ -138,6 +164,14 @@ export function updateDoctorStatus(
     return item;
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+  // Sync to API asynchronously
+  fetch('/api/screening', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recordId: id, status, doctorNotes: notes }),
+  }).catch(() => {});
+
   return updated;
 }
 

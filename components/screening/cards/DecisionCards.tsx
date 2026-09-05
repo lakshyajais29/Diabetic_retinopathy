@@ -477,7 +477,7 @@ export function GradeSummaryStrip({
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       <span
-        className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-ink-950"
+        className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-extrabold text-white shadow-sm border border-black/10"
         style={{ background: `var(--dr-${grading.level})` }}
       >
         <BarChart3 className="h-3.5 w-3.5" aria-hidden />
@@ -486,7 +486,7 @@ export function GradeSummaryStrip({
       <StatusBadge status={decisionStatus(confidence.decision)} size="md">
         {confidence.decisionLabel}
       </StatusBadge>
-      <span className="tabular rounded-lg border border-ink-700 bg-ink-900 px-3 py-1.5 font-mono text-[11.5px] text-ink-300">
+      <span className="tabular rounded-lg border border-slate-200 bg-white shadow-2xs px-3 py-1.5 font-mono text-[11.5px] font-bold text-slate-800">
         {confidence.finalConfidence}/100 confidence
       </span>
     </div>

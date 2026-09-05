@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  HEALTH_WORKER
+  DOCTOR
+  DISTRICT_ADMIN
+  SYSTEM_ADMIN
+}
+
+enum ScreeningStatus {
+  PENDING_DOCTOR_REVIEW
+  APPROVED_BY_DOCTOR
+  RECAPTURE_REQUESTED
+  OVERRIDDEN
+}
+
+enum Urgency {
+  IMMEDIATE
+  WITHIN_14_DAYS
+  ROUTINE_6_12_MONTHS
+  NONE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(HEALTH_WORKER)
+  phone         String?
+  medicalCouncilId String?
+  facilityName  String?
+  district      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reviewedRecords ScreeningRecord[] @relation("DoctorReviews")
+}
+
+model Patient {
+  id           String            @id @default(cuid())
+  patientId    String            @unique // e.g. PAT-8842
+  name         String
+  age          Int
+  gender       String
+  phone        String?
+  abhaId       String?           // Ayushman Bharat Health Account ID
+  address      String?
+  district     String            @default("Sangli")
+  riskFactors  String[]          @default([])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  screenings   ScreeningRecord[]
+}
+
+model ScreeningRecord {
+  id                String          @id @default(cuid())
+  patientId         String
+  patient           Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  qualityVerdict    String          // 'good' | 'borderline' | 'ungradeable'
+  qualityScore      Float
+  icdrGrade         Int             // 0..4
+  gradeLabel        String
+  referralRequired  Boolean
+  referralUrgency   Urgency         @default(NONE)
+  confidenceScore   Float
+  status            ScreeningStatus @default(PENDING_DOCTOR_REVIEW)
+  
+  lesionSummary     String
+  lesionsDetail     Json?           // Structured breakdown of microaneurysms, hemorrhages, etc.
+  
+  rawImageUrl       String?
+  processedImageUrl String?
+  heatmapUrl        String?
+  
+  doctorNotes       String?
+  reviewedAt        DateTime?
+  reviewedById      String?
+  reviewedBy        User?           @relation("DoctorReviews", fields: [reviewedById], references: [id])
+  
+  engineUsed        String          @default("deterministic") // "mistral" | "deterministic"
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Hospital {
+  id                        String   @id @default(cuid())
+  name                      String
+  district                  String
+  type                      String   // 'District Hospital' | 'Ayushman Bharat Center' | 'Retina Specialist Clinic' | 'Medical College'
+  address                   String
+  phone                     String
+  distanceText              String?  // e.g. "4.2 km from PHC"
+  latitude                  Float?
+  longitude                 Float?
+  retinaSpecialistAvailable Boolean  @default(true)
+  ayushmanEmpaneled         Boolean  @default(true)
+  timings                   String
+  rating                    Float    @default(4.5)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model DistrictMetric {
+  id                 String   @id @default(cuid())
+  districtName       String
+  date               DateTime @default(now())
+  totalScreenings    Int      @default(0)
+  normalCount        Int      @default(0)
+  mildCount          Int      @default(0)
+  moderateCount      Int      @default(0)
+  severeCount        Int      @default(0)
+  pdrCount           Int      @default(0)
+  referralsGenerated Int      @default(0)
+  activeKiosks       Int      @default(0)
+  createdAt          DateTime @default(now())
+}

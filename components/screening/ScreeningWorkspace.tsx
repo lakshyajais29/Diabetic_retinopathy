@@ -194,7 +194,7 @@ export function ScreeningWorkspace() {
 
             <div className="flex items-center gap-2">
               <div
-                className="flex rounded-lg border border-ink-800 bg-ink-950 p-0.5"
+                className="flex rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-2xs"
                 role="tablist"
                 aria-label="Workspace view"
               >
@@ -501,9 +501,11 @@ function ViewTab({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition',
-        active ? 'bg-ink-800 text-white' : 'text-ink-400 hover:text-ink-200',
-        disabled && 'cursor-not-allowed opacity-40 hover:text-ink-400',
+        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-bold transition',
+        active
+          ? 'bg-white text-emerald-800 shadow-xs border border-slate-200/80'
+          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50',
+        disabled && 'cursor-not-allowed opacity-40 hover:text-slate-500',
       )}
     >
       {icon}

@@ -14,7 +14,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import {
-  getScreeningHistory,
+  fetchScreeningHistoryAsync,
   updateDoctorStatus,
   clearScreeningHistory,
   type ScreeningRecord,
@@ -32,8 +32,9 @@ export function DoctorConsole() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
 
-  const reloadRecords = () => {
-    setRecords(getScreeningHistory());
+  const reloadRecords = async () => {
+    const data = await fetchScreeningHistoryAsync();
+    setRecords(data);
   };
 
   useEffect(() => {

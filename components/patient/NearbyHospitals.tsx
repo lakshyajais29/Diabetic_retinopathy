@@ -1,16 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Building2,
   Clock,
-  ExternalLink,
   MapPin,
   Navigation,
   Phone,
   Search,
   ShieldCheck,
   Stethoscope,
+  RefreshCw,
 } from 'lucide-react';
 
 export interface Hospital {
@@ -85,17 +85,39 @@ const SAMPLE_HOSPITALS: Hospital[] = [
 export function NearbyHospitals() {
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [hospitals, setHospitals] = useState<Hospital[]>(SAMPLE_HOSPITALS);
+  const [loading, setLoading] = useState(false);
 
-  const filteredHospitals = SAMPLE_HOSPITALS.filter((h) => {
-    const matchesSearch =
-      h.name.toLowerCase().includes(search.toLowerCase()) ||
-      h.district.toLowerCase().includes(search.toLowerCase()) ||
-      h.address.toLowerCase().includes(search.toLowerCase());
+  useEffect(() => {
+    let cancelled = false;
+    const fetchHospitals = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set('q', search);
+        if (selectedType === 'ayushman') params.set('ayushman', 'true');
+        if (selectedType === 'retina') params.set('specialist', 'true');
 
-    if (selectedType === 'ayushman') return matchesSearch && h.ayushmanEmpaneled;
-    if (selectedType === 'retina') return matchesSearch && h.retinaSpecialistAvailable;
-    return matchesSearch;
-  });
+        const res = await fetch(`/api/hospitals?${params.toString()}`);
+        if (res.ok) {
+          const payload = await res.json();
+          if (!cancelled && payload.data && Array.isArray(payload.data)) {
+            setHospitals(payload.data);
+          }
+        }
+      } catch (err) {
+        console.warn('Hospital API search error:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchHospitals, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [search, selectedType]);
 
   return (
     <div className="space-y-6">
@@ -129,6 +151,7 @@ export function NearbyHospitals() {
           />
         </div>
         <div className="flex items-center gap-2">
+          {loading && <RefreshCw className="h-4 w-4 animate-spin text-emerald-600 mr-1" />}
           <button
             onClick={() => setSelectedType('all')}
             className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
@@ -158,7 +181,7 @@ export function NearbyHospitals() {
 
       {/* Hospital Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
-        {filteredHospitals.map((h) => (
+        {hospitals.map((h) => (
           <div key={h.id} className="medical-card p-5 space-y-3.5">
             <div className="flex items-start justify-between gap-3">
               <div>
