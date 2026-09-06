@@ -154,7 +154,7 @@ export function ScreeningWorkspace() {
     return (
       <>
         {recaptureHint ? (
-          <div className="mx-auto max-w-5xl px-4 pt-4">
+          <div className="w-full px-4 pt-6 sm:px-6 lg:px-8">
             <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
               <Camera className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
               <p className="leading-relaxed">{recaptureHint}</p>
@@ -181,7 +181,7 @@ export function ScreeningWorkspace() {
       {/* Sticky Workspace Top Telemetry Bar                                 */}
       {/* ================================================================== */}
       <div className="print-hide sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-xs backdrop-blur-md">
-        <div className="mx-auto max-w-[1500px]">
+        <div className="w-full">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Encounter Meta */}
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -300,7 +300,7 @@ export function ScreeningWorkspace() {
           lesions={state.lesions}
         />
       ) : (
-        <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[minmax(380px,0.85fr)_1.15fr]">
+        <div className="grid w-full gap-5 px-4 py-5 sm:px-6 lg:px-8 xl:gap-8 xl:grid-cols-[minmax(380px,0.85fr)_1.15fr]">
           {/* ---- Left Column: PACS Retinal Image Viewer ---- */}
           <div
             className={cn(

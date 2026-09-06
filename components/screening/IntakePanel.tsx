@@ -122,11 +122,11 @@ export function IntakePanel({
   };
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] animate-fade-up">
+    <div className="grid w-full min-h-[calc(100vh-3rem)] gap-6 px-4 py-6 sm:px-6 lg:px-8 xl:gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] animate-fade-up">
       {/* ================================================================== */}
       {/* Retinal Capture Upload & Camera                                     */}
       {/* ================================================================== */}
-      <div className="clinical-card p-5 sm:p-6 space-y-5">
+      <div className="clinical-card flex flex-col p-5 sm:p-6 space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
           <div className="flex items-center gap-2.5">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -154,19 +154,19 @@ export function IntakePanel({
             accept(e.dataTransfer.files?.[0] ?? null);
           }}
           className={cn(
-            'relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-150',
+            'relative flex-1 flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all duration-150',
             dragging
               ? 'border-emerald-500 bg-emerald-50/50'
               : 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white',
           )}
         >
           {preview ? (
-            <div className="relative p-2 bg-[#090d16] rounded-xl flex items-center justify-center">
+            <div className="relative h-full w-full p-2 bg-[#090d16] rounded-xl flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview}
                 alt="Fundus photograph awaiting screening"
-                className="max-h-[300px] w-auto rounded-lg object-contain"
+                className="max-h-full max-w-full rounded-lg object-contain"
               />
               <button
                 type="button"
@@ -288,13 +288,13 @@ export function IntakePanel({
       {/* ================================================================== */}
       {/* Patient Encounter Details Form                                     */}
       {/* ================================================================== */}
-      <div className="clinical-card p-5 sm:p-6 space-y-4 self-start">
+      <div className="clinical-card flex flex-col p-5 sm:p-6 space-y-4">
         <div className="border-b border-slate-100 pb-3">
           <h2 className="text-sm font-bold text-slate-900">Patient Encounter Record</h2>
           <p className="text-xs text-slate-500">Clinical identifiers and metadata</p>
         </div>
 
-        <div className="space-y-3.5">
+        <div className="space-y-3.5 flex-1 flex flex-col">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Patient ID / Encounter #">
               <input
@@ -357,9 +357,9 @@ export function IntakePanel({
             />
           </Field>
 
-          <Field label="Clinical Observations / Vitals">
+          <Field label="Clinical Observations / Vitals" className="flex-1 flex flex-col">
             <textarea
-              className={cn(inputClass, 'min-h-[70px] resize-y')}
+              className={cn(inputClass, 'flex-1 min-h-[70px] resize-y')}
               value={patient.notes}
               onChange={(e) => set('notes', e.target.value)}
               placeholder="HbA1c levels, vision complaints, previous laser history..."
@@ -383,9 +383,9 @@ export function IntakePanel({
 const inputClass =
   'w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none transition';
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <label className="block">
+    <label className={cn("block", className)}>
       <span className="mb-1 block text-[11px] font-semibold text-slate-700">{label}</span>
       {children}
     </label>
