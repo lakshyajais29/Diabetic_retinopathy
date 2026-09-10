@@ -1,0 +1,8 @@
+# RetinaSetu inference backend
+torch>=2.0            # stage model architectures
+pillow>=10.0          # image decode / geometry (primary decoder)
+fastapi>=0.110        # inference service
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9   # multipart/form-data uploads
+numpy>=1.24
+# opencv-python>=4.9  # optional: fallback decoder when Pillow is unavailable
