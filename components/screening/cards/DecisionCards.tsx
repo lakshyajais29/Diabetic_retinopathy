@@ -350,7 +350,7 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
           )}
         >
           <p className="text-2xl font-extrabold text-slate-900">
-            {data.decision === 'autonomous' ? 'Safe to report' : 'Doctor Review Required'}
+            {data.decision === 'ai_recommendation' ? 'Safe to report' : 'Doctor Review Required'}
           </p>
           <p className="text-lg font-bold text-slate-800">
             Model Confidence: {data.finalConfidence}/100

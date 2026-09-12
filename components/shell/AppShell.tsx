@@ -5,12 +5,10 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import {
   Building2,
-  ExternalLink,
   Home,
   ScanEye,
   Stethoscope,
   UserCheck,
-  Cpu,
 } from 'lucide-react';
 import { cn } from '@/lib/ui';
 
