@@ -40,30 +40,16 @@ export function GradingCard({ data }: { data: GradingResult }) {
 
       <div className="space-y-5 p-4 sm:p-5">
         {/* Headline grade box */}
-        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-          <div
-            className="grid h-16 w-16 shrink-0 place-items-center rounded-xl text-3xl font-extrabold text-white shadow-sm"
-            style={{ background: `var(--dr-${data.level})` }}
-            aria-hidden
-          >
-            {data.level}
-          </div>
-          <div className="min-w-[200px] flex-1">
-            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-              ICDR Classification
-            </p>
-            <p className="mt-0.5 text-xl font-bold text-slate-900">{spec.clinical}</p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">{spec.meaning}</p>
-          </div>
-          <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-5">
-            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-              Clinical Action
-            </p>
-            <p className="mt-0.5 text-xs font-bold text-slate-900">{spec.followUp}</p>
-            <p className="mt-0.5 font-mono text-[10px] font-semibold text-emerald-800 uppercase">
-              Urgency: {data.urgency}
-            </p>
-          </div>
+        <div className="flex flex-col gap-1.5 rounded-lg border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+          <p className="text-2xl font-extrabold text-slate-900">
+            {spec.short} (Grade {data.level})
+          </p>
+          <p className="text-lg font-bold text-slate-800">
+            {data.referable ? 'Referable' : 'Non-referable'}
+          </p>
+          <p className="text-sm text-slate-600 mt-1">
+            Based on detected retinal lesions
+          </p>
         </div>
 
         {/* Probability breakdown */}
@@ -253,24 +239,16 @@ export function ExplainCard({ data }: { data: ExplainabilityResult }) {
       <div className="space-y-4 p-4 sm:p-5">
         <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600">{data.narrative}</p>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2">
-          <span className="text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
-            Attention Source:
-          </span>
-          <span className="font-mono text-xs font-medium text-emerald-800">
-            {data.attentionSource === 'model'
-              ? 'Grading model saliency map (reported driver regions)'
-              : 'On-device lesion-response energy (suppressed vasculature)'}
-          </span>
-        </div>
-
-        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
-          <Meter
-            label="Evidence overlap score"
-            value={data.evidenceOverlapScore}
-            status={status}
-            note={data.overlapExplanation}
-          />
+        <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+          <p className="text-lg font-bold text-slate-900">
+            Status: {data.overlapInterpretation === 'aligned' ? 'Evidence aligned' : data.overlapInterpretation === 'partial' ? 'Evidence partially aligned' : 'Evidence misaligned'}
+          </p>
+          <p className="text-sm font-medium text-slate-800">
+            Focus match: {Math.round(data.attentionOnLesionsPct)}% of attention is on detected lesions.
+          </p>
+          <p className="text-sm text-slate-600">
+            Model focused mainly on {data.topRegions.length > 0 ? quadrantLabel(data.topRegions[0].quadrant) : 'background areas'}.
+          </p>
         </div>
 
         <div>
@@ -365,32 +343,21 @@ export function ConfidenceCard({ data }: { data: ConfidenceAssessment }) {
       <div className="space-y-4 p-4 sm:p-5">
         <div
           className={cn(
-            'rounded-xl border p-4',
+            'rounded-xl border p-4 flex flex-col gap-2',
             status === 'good' && 'border-emerald-200 bg-emerald-50/60',
             status === 'warning' && 'border-amber-200 bg-amber-50/60',
             status === 'critical' && 'border-rose-200 bg-rose-50/60',
           )}
         >
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="min-w-[200px] flex-1">
-              <StatusBadge status={status} size="lg">
-                {data.decisionLabel}
-              </StatusBadge>
-              <p className="mt-2 text-xs sm:text-[13px] leading-relaxed text-slate-700">{data.narrative}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                Fused Confidence
-              </p>
-              <p className="tabular mt-0.5 text-3xl sm:text-4xl font-extrabold text-slate-900 leading-none">
-                {data.finalConfidence}
-                <span className="text-sm font-normal text-slate-400">/100</span>
-              </p>
-              <p className="mt-0.5 font-mono text-[10px] font-semibold text-slate-600 uppercase">
-                {data.band} band
-              </p>
-            </div>
-          </div>
+          <p className="text-2xl font-extrabold text-slate-900">
+            {data.decision === 'autonomous' ? 'Safe to report' : 'Doctor Review Required'}
+          </p>
+          <p className="text-lg font-bold text-slate-800">
+            Model Confidence: {data.finalConfidence}/100
+          </p>
+          <p className="text-sm text-slate-700">
+            {data.narrative}
+          </p>
         </div>
 
         <div>

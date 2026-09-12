@@ -45,18 +45,15 @@ export function QualityCard({ data }: { data: QualityAssessment }) {
       />
 
       <div className="space-y-4 p-4 sm:p-5">
-        <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
-          <div className="shrink-0">
-            <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-              Quality Score
-            </p>
-            <p className="tabular mt-1 text-3xl sm:text-4xl font-extrabold text-slate-900 leading-none">
-              {data.overallScore}
-              <span className="text-sm font-normal text-slate-400">/100</span>
-            </p>
-          </div>
-          <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 border-l border-slate-200 pl-4">
-            {data.narrative}
+        <div className="flex flex-col gap-1.5 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+          <p className="text-lg font-bold text-slate-900">
+            Image Quality: {data.overallScore}/100
+          </p>
+          <p className="text-sm font-medium text-slate-800">
+            Status: {data.verdict === 'good' ? 'Gradable' : data.verdict === 'borderline' ? 'Gradable with caution' : 'Ungradeable'}
+          </p>
+          <p className="text-sm text-slate-600">
+            Main issue: {data.failureReasons.length > 0 ? data.failureReasons[0] : 'None'}
           </p>
         </div>
 
@@ -225,29 +222,23 @@ export function StructureCard({ data }: { data: StructureAnalysis }) {
 
         <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">
           <StatTile
-            label="Optic disc"
-            value={data.opticDisc.detected ? `${data.opticDisc.confidence}` : '—'}
-            unit={data.opticDisc.detected ? '/100 conf' : undefined}
+            label="Optic Disc"
+            value={data.opticDisc.detected ? 'Detected' : 'Not Detected'}
             status={data.opticDisc.detected ? 'good' : 'warning'}
-            hint={`r ≈ ${(data.opticDisc.radius * 100).toFixed(1)}%`}
           />
           <StatTile
-            label="Fovea"
-            value={data.fovea.detected ? `${data.fovea.discDiameters}` : '—'}
-            unit={data.fovea.detected ? 'DD' : undefined}
+            label="Macula/Fovea"
+            value={data.fovea.detected ? 'Detected' : 'Not Detected'}
             status={data.fovea.detected ? 'good' : 'warning'}
-            hint="Normal: 2.0–3.0 DD"
           />
           <StatTile
-            label="Vessel density"
-            value={data.vessels.densityPct}
-            unit="% retina"
-            hint={`Arcade ${data.vessels.arcadeContinuity}/100`}
+            label="Blood Vessels"
+            value={data.vessels.densityPct > 5 ? 'Clearly visible' : 'Poorly visible'}
+            status={data.vessels.densityPct > 5 ? 'good' : 'warning'}
           />
           <StatTile
-            label="Laterality"
-            value={data.laterality === 'indeterminate' ? '—' : data.laterality}
-            hint={titleCase(data.fieldDefinition)}
+            label="Eye"
+            value={data.laterality === 'indeterminate' ? 'Unknown' : titleCase(data.laterality)}
             status={data.laterality === 'indeterminate' ? 'warning' : 'neutral'}
           />
         </div>
@@ -373,33 +364,16 @@ export function LesionCard({ data }: { data: LesionAnalysis }) {
         )}
 
         <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">
-          <StatTile
-            label="Corroboration"
-            value={data.corroborationScore}
-            unit="/100"
-            status={scoreStatus(data.corroborationScore)}
-            hint="Model vs. classical"
-          />
-          <StatTile
-            label="CV candidates"
-            value={`${data.cvCandidates.darkBlobs}/${data.cvCandidates.brightBlobs}`}
-            hint="Dark / bright blobs"
-          />
-          <StatTile
-            label="Red density"
-            value={data.densityPerDiscArea}
-            unit="/DA"
-            hint="MA + haemorrhages"
-          />
-          <StatTile
-            label="Quadrants"
-            value={`${Object.values(data.quadrantBurden).filter((v) => v > 0).length}/4`}
-            hint="4-2-1 rule"
-            status={
-              Object.values(data.quadrantBurden).filter((v) => v > 0).length >= 4
-                ? 'serious'
-                : 'neutral'
-            }
+          <StatTile label="Microaneurysms" value={data.counts['microaneurysm'] || 0} />
+          <StatTile label="Haemorrhages" value={data.counts['haemorrhage'] || 0} />
+          <StatTile label="Hard Exudates" value={data.counts['hard_exudate'] || 0} />
+          <StatTile label="Soft Exudates" value={data.counts['soft_exudate'] || 0} />
+          <StatTile label="IRMA" value={data.counts['irma'] || 0} />
+          <StatTile label="Venous Beading" value={data.counts['venous_beading'] || 0} />
+          <StatTile 
+            label="Neovascularisation" 
+            value={data.neovascularisation.suspected ? 'Suspected' : 'None'} 
+            status={data.neovascularisation.suspected ? 'critical' : 'good'} 
           />
         </div>
 

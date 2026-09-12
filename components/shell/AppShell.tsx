@@ -109,37 +109,7 @@ export function AppShell({
           })}
         </nav>
 
-        {/* Desktop Engine Status Footer */}
-        <div className="border-t border-slate-100 p-3.5 space-y-2.5">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[9.5px] font-bold tracking-wider text-slate-500 uppercase flex items-center gap-1.5">
-                <Cpu className="h-3 w-3 text-slate-500" />
-                Diagnostic Engine
-              </span>
-              <span
-                className={cn(
-                  'h-2 w-2 rounded-full',
-                  engineReady ? 'bg-emerald-500' : 'bg-amber-500',
-                )}
-              />
-            </div>
-            <p className="mt-1 text-xs font-bold text-slate-800">{engineLabel}</p>
-            <p className="mt-0.5 text-[10.5px] text-slate-500 leading-snug">
-              {engineReady
-                ? 'High-precision multimodal pipeline active.'
-                : 'On-device local pixel math engine active.'}
-            </p>
-          </div>
-
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-slate-500 transition hover:text-emerald-700"
-          >
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-            Return to Clinical Portal
-          </Link>
-        </div>
+        {/* Desktop Engine Status Footer removed */}
       </aside>
 
       {/* ================================================================== */}
